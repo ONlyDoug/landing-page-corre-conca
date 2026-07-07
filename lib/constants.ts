@@ -4,11 +4,11 @@ export type LoteInfo = { numero: 1 | 2; valor: number; condicao: string }
 export const EVENTO = {
   nome: 'Corre Conça — Corrida Solidária',
   edicao: '1ª edição',
-  dataEvento: '2026-08-16T06:00:00-03:00',
+  dataEvento: '2026-09-06T06:00:00-03:00',
   local: 'Conceição da Feira, BA',
 }
 
-export const VIRADA_LOTE = '2026-07-23T23:59:59-03:00'
+export const VIRADA_LOTE = '2026-08-13T23:59:59-03:00'
 export const DATA_EVENTO_ISO = EVENTO.dataEvento
 
 export const MODALIDADES: Modalidade[] = [

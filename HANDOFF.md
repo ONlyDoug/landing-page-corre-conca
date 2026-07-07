@@ -48,14 +48,35 @@ Nenhuma dessas pendências bloqueia o funcionamento da página — todas têm um
 
 `LINK_INFINITEPAY` e os links de redes sociais ainda são placeholders (`'#'`) — atualizá-los em `lib/constants.ts` assim que o cliente fornecer os valores reais, e fazer novo `vercel --prod` (ou apenas dar push, já que o deploy automático está ativo).
 
+## Módulo 2 — Fase 6: Infraestrutura Supabase + Integração Real com `/api/inscricao`
+
+Concluída em 2026-07-07. `/api/inscricao` agora grava de verdade no Supabase (RF02 completo): valida com `inscricaoSchema`, converte e valida `dataNascimento` (`parseDataNascimentoISO` em `lib/validations.ts`), calcula lote/valor vigente no servidor (`getLoteAtivo` em `lib/utils.ts`, nunca confiando em valor enviado pelo cliente), normaliza CPF para dígitos antes de gravar, e retorna `{ success, qrCodeToken, linkPagamento }`.
+
+**Projeto Supabase**: `corre-conca` (ref `bhnyvplhmopcbobkfrpy`, região `us-west-1`). Nota: o plano original previa criar o projeto em `sa-east-1` (menor latência, evento é na Bahia); esse projeto específico já existia (vazio) quando a criação foi tentada — provavelmente criado sem querer por um agente de planejamento anterior que tinha acesso às mesmas ferramentas MCP apesar de instruído a não executar nada. Foi reaproveitado em vez de duplicado, com o dono do projeto avisado. Se a latência de `us-west-1` incomodar no dashboard (Fase 8+), vale recriar em `sa-east-1`.
+
+**Schema**: tabelas `inscricoes` e `pagamentos` conforme `PRD_CorreConca.md`, com `ENABLE ROW LEVEL SECURITY` nas duas (migração `create_inscricoes_pagamentos`). Duas adições não previstas no PRD, ambas não-destrutivas:
+- Trigger `trg_inscricoes_atualizado_em` (`BEFORE UPDATE`) — sem ele, `atualizado_em` nunca reflete updates feitos nas Fases 7/8.
+- Índice `idx_pagamentos_inscricao_id` — chave estrangeira não é indexada automaticamente pelo Postgres.
+- Uma correção de segurança aplicada via advisor: `search_path` fixado na função `set_atualizado_em()` (migração `fix_set_atualizado_em_search_path`), evitando risco de search_path hijacking.
+
+**RLS sem policies é esperado nesta fase**: `get_advisors` aponta `rls_enabled_no_policy` em ambas as tabelas — correto, pois não há usuário autenticado até a Fase 8. A rota grava usando a **service role key** (bypassa RLS), nunca a chave anônima; o client (`lib/supabase/server.ts`) só é importado por código server-side (a rota de API), nunca por componentes `"use client"`.
+
+**Variáveis de ambiente** (nunca prefixadas com `NEXT_PUBLIC_`, pois nada roda no browser ainda): `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`, em `.env.local` (não commitado) e replicadas na Vercel (Production + Preview). `.env.example` documenta as chaves sem valores reais. Em `lib/supabase/server.ts`, o client é instanciado via um Proxy lazy (só chama `createClient` no primeiro uso real) — sem isso, `next build` falha ao "coletar dados da página" da rota em ambientes sem as variáveis configuradas.
+
+**Detalhe de arquitetura descoberto durante a implementação**: `lib/utils.ts` tinha o hook `useHydrated()` (usa `useSyncExternalStore`, só funciona em Client Components) misturado com funções puras (`getLoteStatus`, `getLoteAtivo`, máscaras). Como `/api/inscricao` (Server Component/Route) passou a importar `getLoteAtivo` do mesmo arquivo, o build quebrava. `useHydrated` foi extraído para `lib/useHydrated.ts`; `CountdownTimer.tsx` foi o único ponto de import atualizado.
+
+**Testado manualmente** (curl contra `localhost:3000`, depois limpo do banco): inscrição válida → `200` com `qrCodeToken`; mesmo CPF de novo → `409` com mensagem amigável; `dataNascimento` inválida (`31/02/2026`) → `400` em `fieldErrors.dataNascimento`. Registro conferido via SQL: CPF gravado sem máscara, `data_nascimento` em formato `DATE` real, `lote`/`valor_pago` corretos, `status_pagamento = 'pendente'`.
+
+**Fora de escopo desta fase** (fica para depois): `components/sections/Formulario.tsx` não foi alterado — ainda mostra erro genérico mesmo para CPF duplicado (só checa `result.success` booleano); considerar exibir a mensagem específica do backend como follow-up. Webhook real do InfinitePay (Fase 7, aguarda credenciais do cliente — `LINK_INFINITEPAY` continua `'#'`). Autenticação/dashboard/policies de RLS (Fase 8+).
+
 ## Módulo 2 (lembrete)
 
-O **Dashboard do Organizador** (autenticação, Supabase, webhook do InfinitePay, check-in, relatórios) foi **deliberadamente deixado fora do escopo** desta entrega, por decisão conjunta com o cliente. Deve ser tratado como um projeto/spec separado, iniciado somente após a validação desta landing page. Os nomes de campo e valores de enum do formulário de inscrição (`modalidade: 'caminhada_3km' | 'corrida_6km'`, `tamanhoCamisa: 'P'|'M'|'G'|'GG'|'XG'`) já foram definidos pensando em compatibilidade direta com a futura tabela `inscricoes` no Supabase — não renomear esses campos sem atualizar ambos os lados.
+O **Dashboard do Organizador** (autenticação, webhook do InfinitePay, check-in, relatórios) segue sendo construído de forma incremental por fase (ver seção acima para a Fase 6). Os nomes de campo e valores de enum do formulário de inscrição (`modalidade: 'caminhada_3km' | 'corrida_6km'`, `tamanhoCamisa: 'P'|'M'|'G'|'GG'|'XG'`) foram definidos pensando em compatibilidade direta com a tabela `inscricoes` no Supabase — não renomear esses campos sem atualizar ambos os lados.
 
 ## Decisões técnicas relevantes
 
 - **Tailwind CSS v3** foi forçado no scaffold (em vez do v4 padrão do `create-next-app` atual), para manter o formato clássico de `tailwind.config.ts` especificado no plano.
-- **Hidratação segura para dados dependentes de tempo** (contagem regressiva, status de lote): em vez do padrão comum `useState(false)` + `useEffect(() => setMounted(true), [])` — que dispara o lint `react-hooks/set-state-in-effect` — foi criado um hook compartilhado `useHydrated()` em `lib/utils.ts`, baseado em `useSyncExternalStore`, usado por `CountdownTimer.tsx` e `LoteCard.tsx`.
+- **Hidratação segura para dados dependentes de tempo** (contagem regressiva, status de lote): em vez do padrão comum `useState(false)` + `useEffect(() => setMounted(true), [])` — que dispara o lint `react-hooks/set-state-in-effect` — foi criado um hook compartilhado `useHydrated()` (`lib/useHydrated.ts`, separado de `lib/utils.ts` desde a Fase 6 para não puxar `useSyncExternalStore` para dentro de Server Components), baseado em `useSyncExternalStore`, usado por `CountdownTimer.tsx` e `LoteCard.tsx`.
 - **Status do lote e alvo da contagem regressiva nunca são estáticos**: são sempre recalculados no cliente (via `useEffect` + `getLoteStatus`/`getCountdownTarget`), para que a página não "congele" em "Lote 1 ativo" para sempre após a geração estática. `page.tsx` também define `export const revalidate = 3600` como reforço.
 - **`images.dangerouslyAllowSVG: true`** foi adicionado em `next.config.ts` — necessário porque o Next.js bloqueia otimização de SVG por padrão, e a logo placeholder é um SVG local servido via `next/image`.
 - **CPF validado com algoritmo real de dígito verificador (módulo 11)**, rejeitando sequências repetidas (`111.111.111-11` etc.), em `lib/validations.ts` — não é uma validação superficial de formato.

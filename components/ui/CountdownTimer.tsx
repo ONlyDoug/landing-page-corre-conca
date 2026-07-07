@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react"
 import { AnimatePresence, motion } from "framer-motion"
-import { getCountdownTarget, useHydrated } from "@/lib/utils"
+import { getCountdownTarget } from "@/lib/utils"
+import { useHydrated } from "@/lib/useHydrated"
 
 type TimeLeft = {
   dias: number

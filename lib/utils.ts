@@ -1,14 +1,4 @@
-import { useSyncExternalStore } from 'react'
-import { VIRADA_LOTE, DATA_EVENTO_ISO } from './constants'
-
-function subscribeNoop(): () => void {
-  return () => {}
-}
-
-/** True somente após a hidratação no cliente — evita mismatch ao calcular datas/contadores. */
-export function useHydrated(): boolean {
-  return useSyncExternalStore(subscribeNoop, () => true, () => false)
-}
+import { VIRADA_LOTE, DATA_EVENTO_ISO, LOTES, type LoteInfo } from './constants'
 
 export type LoteStatus = 'ativo' | 'em_breve' | 'encerrado'
 
@@ -22,6 +12,11 @@ export function getCountdownTarget(now: Date): { target: Date; label: string } {
   const virada = new Date(VIRADA_LOTE)
   if (now < virada) return { target: virada, label: 'Virada de lote em:' }
   return { target: new Date(DATA_EVENTO_ISO), label: 'O evento começa em:' }
+}
+
+/** Lote vigente no momento informado — nunca confiar em lote/valor enviados pelo cliente. */
+export function getLoteAtivo(now: Date = new Date()): LoteInfo {
+  return LOTES.find((lote) => getLoteStatus(lote.numero, now) === 'ativo') ?? LOTES[LOTES.length - 1]
 }
 
 export function maskCPF(value: string): string {

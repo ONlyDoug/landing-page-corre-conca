@@ -14,6 +14,19 @@ export function validarCPF(cpfSujo: string): boolean {
   return digito1 === parseInt(cpf[9], 10) && digito2 === parseInt(cpf[10], 10)
 }
 
+/** Converte "dd/mm/yyyy" (formato mascarado do form) em "yyyy-mm-dd", validando data de calendário real. */
+export function parseDataNascimentoISO(valor: string): string | null {
+  const match = valor.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
+  if (!match) return null
+  const [, diaStr, mesStr, anoStr] = match
+  const dia = parseInt(diaStr, 10)
+  const mes = parseInt(mesStr, 10)
+  const ano = parseInt(anoStr, 10)
+  const data = new Date(ano, mes - 1, dia)
+  if (data.getFullYear() !== ano || data.getMonth() !== mes - 1 || data.getDate() !== dia) return null
+  return `${anoStr}-${mesStr}-${diaStr}`
+}
+
 export const inscricaoSchema = z.object({
   nome: z.string().min(3, 'Nome deve ter ao menos 3 caracteres'),
   cpf: z.string().refine(validarCPF, { message: 'CPF inválido' }),

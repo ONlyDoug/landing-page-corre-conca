@@ -19,8 +19,8 @@ const DESCRICAO =
   "Participe da 1ª Corrida Solidária Corre Conça! Caminhada 3KM e Corrida 6KM no dia 16 de agosto em Conceição da Feira – BA. Inscreva-se agora!"
 
 export const metadata: Metadata = {
-  // PENDÊNCIA (ver HANDOFF.md): domínio placeholder até a compra/definição do domínio real.
-  metadataBase: new URL("https://correconca.example.com.br"),
+  // Domínio da Vercel; trocar quando um domínio próprio for configurado (ver HANDOFF.md).
+  metadataBase: new URL("https://landing-page-corre-conca.vercel.app"),
   title: TITULO,
   description: DESCRICAO,
   openGraph: {

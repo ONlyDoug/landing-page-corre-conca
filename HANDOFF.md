@@ -4,7 +4,7 @@ Este documento registra o estado da entrega da **Landing Page** (Módulo 1) da 1
 
 ## Status
 
-Módulo 1 (Landing Page) **completo e verificado localmente**. Nenhum deploy foi realizado (ver seção "Deploy" abaixo).
+Módulo 1 (Landing Page) **completo, verificado e em produção**: https://landing-page-corre-conca.vercel.app (ver seção "Deploy" abaixo).
 
 Verificação final executada em 2026-07-06:
 - `npm run build` — build de produção completo, 0 erros. Rota `/` estática com `revalidate: 3600`, `/api/inscricao` dinâmica.
@@ -33,19 +33,20 @@ Todas as pendências abaixo estão marcadas com comentário `PLACEHOLDER` no có
 |---|---|---|
 | Link de pagamento do painel InfinitePay | `lib/constants.ts` → `LINK_INFINITEPAY` | `'#'` |
 | E-mail real da organização | `lib/constants.ts` → `EMAIL_ORGANIZACAO` | `'contato@correconca.org.br'` (inventado) |
-| Logo real do evento | `public/images/logo-placeholder.svg` (referenciado via `lib/constants.ts` → `LOGO_PATH`) | SVG placeholder circular roxo/branco |
 | Links reais de redes sociais (Instagram/WhatsApp) | `lib/constants.ts` → `REDES_SOCIAIS` | `{ instagram: '#', whatsapp: '#' }` |
 | Nome real da organização realizadora | `lib/constants.ts` → `ORGANIZACAO_REALIZACAO` | `'Organização a definir'` |
 | Local e data de retirada do kit | `lib/constants.ts` → `KIT_NOTA`, `FAQ_ITEMS`, `REGULAMENTO_ITEMS` | "Data e local a confirmar" |
 | Valor da premiação em dinheiro (pódio 6KM) | `lib/constants.ts` → `PREMIACAO.podio6km` | "valor a anunciar" |
-| Domínio de produção definitivo (Open Graph / metadata) | `app/layout.tsx` → `metadataBase` | `https://correconca.example.com.br` (placeholder) |
+| Domínio próprio (se houver) — hoje usa o domínio da Vercel | `app/layout.tsx` → `metadataBase` | `https://landing-page-corre-conca.vercel.app` |
 | Ícone de Instagram | `components/sections/Footer.tsx` | Substituído por `Camera` (lucide-react) + `aria-label="Instagram do Corre Conça"`, pois `lucide-react@1.23.0` removeu todos os ícones de marca. Trocar por um SVG de marca real quando possível. |
 
 Nenhuma dessas pendências bloqueia o funcionamento da página — todas têm um valor de fallback sensato e visível apenas no código-fonte/atributos, não quebram a experiência do usuário.
 
 ## Deploy
 
-**Nenhum deploy foi realizado nesta entrega.** Não fazer deploy (Vercel ou qualquer outro provedor) sem confirmação explícita do cliente/usuário — em especial porque `LINK_INFINITEPAY`, `metadataBase` e os links de redes sociais ainda são placeholders, e um deploy prematuro exporia essas URLs falsas publicamente.
+**Site em produção**: https://landing-page-corre-conca.vercel.app (Vercel, projeto `dougs-projects-9c166f33/landing-page-corre-conca`, conectado ao repositório GitHub `ONlyDoug/landing-page-corre-conca` — cada push em `main` gera um novo deploy automaticamente).
+
+`LINK_INFINITEPAY` e os links de redes sociais ainda são placeholders (`'#'`) — atualizá-los em `lib/constants.ts` assim que o cliente fornecer os valores reais, e fazer novo `vercel --prod` (ou apenas dar push, já que o deploy automático está ativo).
 
 ## Módulo 2 (lembrete)
 

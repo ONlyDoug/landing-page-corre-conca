@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Corre Conça logo placeholder">
+  <circle cx="100" cy="100" r="98" fill="#6B21A8" />
+  <g fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round">
+    <!-- óculos: duas lentes ovais conectadas por uma ponte -->
+    <ellipse cx="70" cy="95" rx="26" ry="20" />
+    <ellipse cx="130" cy="95" rx="26" ry="20" />
+    <line x1="96" y1="95" x2="104" y2="95" />
+    <line x1="44" y1="90" x2="30" y2="82" />
+    <line x1="156" y1="90" x2="170" y2="82" />
+  </g>
+  <!-- coração pequeno abaixo dos óculos -->
+  <path
+    d="M100 150
+       C 92 142, 78 143, 78 156
+       C 78 166, 92 174, 100 182
+       C 108 174, 122 166, 122 156
+       C 122 143, 108 142, 100 150 Z"
+    fill="#FFFFFF"
+  />
+</svg>

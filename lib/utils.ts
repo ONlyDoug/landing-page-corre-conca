@@ -37,3 +37,16 @@ export function maskDataNascimento(value: string): string {
     .replace(/(\d{2})(\d)/, '$1/$2')
     .replace(/(\d{2})(\d{1,4})$/, '$1/$2')
 }
+
+/** Mascara CPF já gravado (sem máscara) para exibição: '12345678901' -> '123.456.***-**' */
+export function mascararCPF(cpf: string): string {
+  return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.***-**')
+}
+
+export function modalidadeLabel(modalidade: string): string {
+  return modalidade === 'caminhada_3km' ? 'Caminhada 3KM' : 'Corrida 6KM'
+}
+
+export function formatBRL(value: number): string {
+  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+}

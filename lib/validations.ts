@@ -14,6 +14,15 @@ export function validarCPF(cpfSujo: string): boolean {
   return digito1 === parseInt(cpf[9], 10) && digito2 === parseInt(cpf[10], 10)
 }
 
+/** Normaliza nome para comparação: trim, minúsculas e remoção de acentos (ex.: "Estéfani " -> "estefani"). */
+export function normalizarNome(valor: string): string {
+  return valor
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+}
+
 /** Converte "dd/mm/yyyy" (formato mascarado do form) em "yyyy-mm-dd", validando data de calendário real. */
 export function parseDataNascimentoISO(valor: string): string | null {
   const match = valor.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)

@@ -11,7 +11,7 @@ import {
 import { supabaseAdmin } from "@/lib/supabase/server"
 
 type InfinitePayLinkResponse = {
-  checkout_url: string
+  url: string
 }
 
 function normalizarTelefoneE164(telefoneMascarado: string): string {
@@ -54,17 +54,18 @@ async function gerarCheckoutDinamico(params: {
     })
 
     if (!resposta.ok) {
-      console.error("[inscricao] InfinitePay retornou status", resposta.status)
+      const corpo = await resposta.text().catch(() => "<sem corpo>")
+      console.error("[inscricao] InfinitePay retornou status", resposta.status, corpo)
       return LINK_INFINITEPAY
     }
 
     const json = (await resposta.json()) as InfinitePayLinkResponse
-    if (!json.checkout_url) {
-      console.error("[inscricao] resposta da InfinitePay sem checkout_url:", json)
+    if (!json.url) {
+      console.error("[inscricao] resposta da InfinitePay sem url:", json)
       return LINK_INFINITEPAY
     }
 
-    return json.checkout_url
+    return json.url
   } catch (err) {
     console.error("[inscricao] falha ao gerar link de checkout dinâmico:", err)
     return LINK_INFINITEPAY

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { validarCPF, parseDataNascimentoISO } from "@/lib/validations"
+import { validarCPF, parseDataNascimentoISO, normalizarNome } from "@/lib/validations"
 import { supabaseAdmin } from "@/lib/supabase/server"
 
 export async function POST(request: Request) {
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "erro_interno" }, { status: 500 })
   }
 
-  const nomeConfere = inscricao?.nome.trim().toLowerCase() === nome.trim().toLowerCase()
+  const nomeConfere = inscricao ? normalizarNome(inscricao.nome) === normalizarNome(nome) : false
   const dataConfere = inscricao?.data_nascimento === dataNascimentoISO
 
   if (!inscricao || !nomeConfere || !dataConfere) {

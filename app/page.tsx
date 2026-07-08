@@ -18,8 +18,8 @@ export const revalidate = 3600
 export default function Home() {
   return (
     <>
-      {/* pb-20 no mobile reserva espaço para o StickyMobileCTA (fixed, ~64px) não cobrir o rodapé/formulário */}
-      <main className="pb-20 md:pb-0">
+      {/* pb-28 no mobile reserva espaço para o StickyMobileCTA (fixed, ~90px com o link de acompanhamento) não cobrir o rodapé/formulário */}
+      <main className="pb-28 md:pb-0">
         <Hero />
         <Sobre />
         <Modalidades />

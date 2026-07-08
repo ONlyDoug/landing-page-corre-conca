@@ -1,7 +1,9 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { motion } from "framer-motion"
+import { Search } from "lucide-react"
 import { EVENTO, MODALIDADES, LOGO_PATH, type Modalidade } from "@/lib/constants"
 import CountdownTimer from "@/components/ui/CountdownTimer"
 
@@ -98,6 +100,14 @@ export default function Hero() {
         >
           Quero me Inscrever &rarr;
         </motion.a>
+
+        <Link
+          href="/acompanhar"
+          className="flex items-center justify-center gap-1 text-sm text-white/80 underline transition-colors hover:text-white"
+        >
+          <Search size={14} aria-hidden="true" />
+          Já me inscrevi — verificar inscrição
+        </Link>
 
         <div className="mt-4">
           <CountdownTimer />

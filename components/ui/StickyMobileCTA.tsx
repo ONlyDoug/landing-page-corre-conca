@@ -1,11 +1,12 @@
 "use client"
 
+import Link from "next/link"
 import { motion } from "framer-motion"
 
-// Altura prevista deste componente: ~64px (py-3 + texto + safe-area).
-// Quem montar o layout final (Fase 4 — Integração) deve reservar
-// `padding-bottom` equivalente (ex: `pb-16 md:pb-0` no <main>) para que
-// este CTA fixo não sobreponha conteúdo no final da página em mobile.
+// Altura prevista deste componente: ~90px (botão + link "Verificar inscrição" + safe-area).
+// Quem montar o layout final deve reservar `padding-bottom` equivalente
+// (`pb-28 md:pb-0` no <main>, ver app/page.tsx) para que este CTA fixo
+// não sobreponha conteúdo no final da página em mobile.
 export default function StickyMobileCTA() {
   return (
     <motion.div
@@ -20,6 +21,12 @@ export default function StickyMobileCTA() {
       >
         Quero me Inscrever &rarr;
       </a>
+      <Link
+        href="/acompanhar"
+        className="mt-1.5 block text-center text-xs text-purple-200 transition-colors hover:text-white"
+      >
+        Verificar inscrição
+      </Link>
     </motion.div>
   )
 }

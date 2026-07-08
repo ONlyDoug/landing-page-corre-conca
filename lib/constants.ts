@@ -8,7 +8,7 @@ export const EVENTO = {
   local: 'Conceição da Feira, BA',
 }
 
-export const VIRADA_LOTE = '2026-08-13T23:59:59-03:00'
+export const VIRADA_LOTE = '2026-08-01T23:59:59-03:00'
 export const DATA_EVENTO_ISO = EVENTO.dataEvento
 
 export const MODALIDADES: Modalidade[] = [
@@ -18,7 +18,7 @@ export const MODALIDADES: Modalidade[] = [
 
 export const LOTES: LoteInfo[] = [
   { numero: 1, valor: 25.0, condicao: 'R$ 25,00 + 2kg de alimento não perecível' },
-  { numero: 2, valor: 40.0, condicao: 'R$ 40,00 + 2kg de alimento não perecível' },
+  { numero: 2, valor: 35.0, condicao: 'R$ 35,00 + 2kg de alimento não perecível' },
 ]
 
 export const TAMANHOS_CAMISA = ['P', 'M', 'G', 'GG', 'XG'] as const

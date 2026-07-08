@@ -1,8 +1,75 @@
 import { NextResponse } from "next/server"
 import { inscricaoSchema, parseDataNascimentoISO } from "@/lib/validations"
-import { getLoteAtivo } from "@/lib/utils"
-import { LINK_INFINITEPAY } from "@/lib/constants"
+import { getLoteAtivo, modalidadeLabel } from "@/lib/utils"
+import {
+  LINK_INFINITEPAY,
+  INFINITEPAY_HANDLE,
+  INFINITEPAY_API_URL,
+  SITE_URL,
+  WEBHOOK_URL,
+} from "@/lib/constants"
 import { supabaseAdmin } from "@/lib/supabase/server"
+
+type InfinitePayLinkResponse = {
+  checkout_url: string
+}
+
+function normalizarTelefoneE164(telefoneMascarado: string): string {
+  return `+55${telefoneMascarado.replace(/\D/g, "")}`
+}
+
+/** Gera o link de checkout dinâmico na InfinitePay; nunca lança — falhas caem no fallback estático. */
+async function gerarCheckoutDinamico(params: {
+  inscricaoId: string
+  qrCodeToken: string
+  nome: string
+  telefone: string
+  modalidade: string
+  valor: number
+}): Promise<string> {
+  const payload = {
+    handle: INFINITEPAY_HANDLE,
+    order_nsu: params.inscricaoId,
+    redirect_url: `${SITE_URL}/acompanhar/${params.qrCodeToken}`,
+    webhook_url: WEBHOOK_URL,
+    items: [
+      {
+        description: `Corre Conça – ${modalidadeLabel(params.modalidade)}`,
+        quantity: 1,
+        price: Math.round(params.valor * 100),
+      },
+    ],
+    customer: {
+      name: params.nome,
+      phone_number: normalizarTelefoneE164(params.telefone),
+    },
+  }
+
+  try {
+    const resposta = await fetch(INFINITEPAY_API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(5000),
+    })
+
+    if (!resposta.ok) {
+      console.error("[inscricao] InfinitePay retornou status", resposta.status)
+      return LINK_INFINITEPAY
+    }
+
+    const json = (await resposta.json()) as InfinitePayLinkResponse
+    if (!json.checkout_url) {
+      console.error("[inscricao] resposta da InfinitePay sem checkout_url:", json)
+      return LINK_INFINITEPAY
+    }
+
+    return json.checkout_url
+  } catch (err) {
+    console.error("[inscricao] falha ao gerar link de checkout dinâmico:", err)
+    return LINK_INFINITEPAY
+  }
+}
 
 export async function POST(request: Request) {
   let body: unknown
@@ -51,7 +118,7 @@ export async function POST(request: Request) {
       lote: lote.numero,
       valor_pago: lote.valor,
     })
-    .select("qr_code_token")
+    .select("id, qr_code_token")
     .single()
 
   if (error) {
@@ -71,9 +138,30 @@ export async function POST(request: Request) {
     )
   }
 
+  // A inscrição já foi gravada com sucesso — nada a partir daqui pode virar erro 5xx.
+  const checkoutUrl = await gerarCheckoutDinamico({
+    inscricaoId: data.id,
+    qrCodeToken: data.qr_code_token ?? "",
+    nome: parsed.data.nome,
+    telefone: parsed.data.telefone,
+    modalidade: parsed.data.modalidade,
+    valor: lote.valor,
+  })
+
+  if (checkoutUrl !== LINK_INFINITEPAY) {
+    const { error: erroUpdateCheckout } = await supabaseAdmin
+      .from("inscricoes")
+      .update({ checkout_url: checkoutUrl })
+      .eq("id", data.id)
+
+    if (erroUpdateCheckout) {
+      console.error("[inscricao] falha ao salvar checkout_url:", erroUpdateCheckout)
+    }
+  }
+
   return NextResponse.json({
     success: true,
     qrCodeToken: data.qr_code_token,
-    linkPagamento: LINK_INFINITEPAY,
+    checkoutUrl,
   })
 }

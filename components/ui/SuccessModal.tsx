@@ -2,16 +2,17 @@
 
 import { AnimatePresence, motion } from "framer-motion"
 import { CheckCircle2, X } from "lucide-react"
-import { LINK_INFINITEPAY } from "@/lib/constants"
 
 type SuccessModalProps = {
   isOpen: boolean
   onClose: () => void
+  checkoutUrl: string
+  qrCodeToken: string
 }
 
-export default function SuccessModal({ isOpen, onClose }: SuccessModalProps) {
+export default function SuccessModal({ isOpen, onClose, checkoutUrl, qrCodeToken }: SuccessModalProps) {
   function handlePagamento() {
-    window.open(LINK_INFINITEPAY, "_blank", "noopener,noreferrer")
+    window.open(checkoutUrl, "_blank", "noopener,noreferrer")
   }
 
   return (
@@ -66,6 +67,17 @@ export default function SuccessModal({ isOpen, onClose }: SuccessModalProps) {
             >
               Ir para o Pagamento &rarr;
             </button>
+
+            <a
+              href={`/acompanhar/${qrCodeToken}`}
+              className="mt-2 block w-full rounded-lg border border-roxo/30 py-2.5 text-center text-sm font-medium text-roxo transition-colors hover:bg-roxo/5"
+            >
+              Acompanhar minha inscrição
+            </a>
+
+            <p className="mt-2 text-xs text-gray-400">
+              Guarde o link de acompanhamento para consultar sua inscrição a qualquer momento.
+            </p>
           </motion.div>
         </motion.div>
       )}

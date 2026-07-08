@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           atualizado_em: string | null
           checkin_em: string | null
+          checkout_url: string | null
           cidade: string
           cpf: string
           criado_em: string | null
@@ -36,6 +37,7 @@ export type Database = {
         Insert: {
           atualizado_em?: string | null
           checkin_em?: string | null
+          checkout_url?: string | null
           cidade: string
           cpf: string
           criado_em?: string | null
@@ -54,6 +56,7 @@ export type Database = {
         Update: {
           atualizado_em?: string | null
           checkin_em?: string | null
+          checkout_url?: string | null
           cidade?: string
           cpf?: string
           criado_em?: string | null

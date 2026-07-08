@@ -73,3 +73,11 @@ export const EMAIL_ORGANIZACAO = 'contato@correconca.org.br' // PLACEHOLDER: e-m
 export const REDES_SOCIAIS = { instagram: 'https://www.instagram.com/corrida_solidariaa', whatsapp: 'https://wa.me/5575981937220' }
 export const ORGANIZACAO_REALIZACAO = 'Corre Conça'
 export const LOGO_PATH = '/images/logo.svg'
+
+// Fase 10 — checkout dinâmico via API InfinitePay
+export const INFINITEPAY_HANDLE = 'delso-palmeira-de'
+export const INFINITEPAY_API_URL = 'https://api.checkout.infinitepay.io/links'
+export const SITE_URL = 'https://correconca.com'
+// URL efetivamente usada no payload enviado à InfinitePay (WEBHOOK_URL_PRODUCAO acima é só documentação/legado)
+export const WEBHOOK_URL = `${SITE_URL}/api/webhook/infinitepay`
+export const LOCALSTORAGE_QR_TOKEN_KEY = 'correconca:qrCodeToken'

@@ -7,8 +7,14 @@ import { motion } from "framer-motion"
 import { Loader2 } from "lucide-react"
 import { inscricaoSchema, type InscricaoFormData } from "@/lib/validations"
 import { maskCPF, maskTelefone, maskDataNascimento } from "@/lib/utils"
-import { TAMANHOS_CAMISA, MODALIDADES } from "@/lib/constants"
+import { TAMANHOS_CAMISA, MODALIDADES, LOCALSTORAGE_QR_TOKEN_KEY } from "@/lib/constants"
 import SuccessModal from "@/components/ui/SuccessModal"
+
+type InscricaoResponse = {
+  success: boolean
+  qrCodeToken?: string
+  checkoutUrl?: string
+}
 
 const CAMPO_BASE =
   "w-full rounded-lg border-2 bg-white px-4 py-3 text-base text-roxo-dark placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-roxo/30"
@@ -22,6 +28,8 @@ function bordaCampo(temErro: boolean, tocadoValido: boolean): string {
 export default function Formulario() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [submitError, setSubmitError] = useState(false)
+  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null)
+  const [qrCodeToken, setQrCodeToken] = useState<string | null>(null)
 
   const {
     register,
@@ -50,13 +58,16 @@ export default function Formulario() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       })
-      const result = (await response.json()) as { success: boolean }
+      const result = (await response.json()) as InscricaoResponse
 
-      if (!response.ok || !result.success) {
+      if (!response.ok || !result.success || !result.qrCodeToken || !result.checkoutUrl) {
         setSubmitError(true)
         return
       }
 
+      window.localStorage.setItem(LOCALSTORAGE_QR_TOKEN_KEY, result.qrCodeToken)
+      setCheckoutUrl(result.checkoutUrl)
+      setQrCodeToken(result.qrCodeToken)
       setIsModalOpen(true)
     } catch {
       setSubmitError(true)
@@ -261,7 +272,14 @@ export default function Formulario() {
         </form>
       </div>
 
-      <SuccessModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      {checkoutUrl && qrCodeToken && (
+        <SuccessModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          checkoutUrl={checkoutUrl}
+          qrCodeToken={qrCodeToken}
+        />
+      )}
     </section>
   )
 }

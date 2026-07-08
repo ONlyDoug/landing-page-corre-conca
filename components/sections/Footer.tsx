@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 import { Camera, MessageCircle } from 'lucide-react'
 import {
   EVENTO,
@@ -45,6 +46,10 @@ export default function Footer() {
             ))}
           </ul>
         </nav>
+
+        <Link href="/acompanhar" className="text-sm text-branco/90 hover:text-branco hover:underline">
+          Já se inscreveu? Acompanhe sua inscrição &rarr;
+        </Link>
 
         <div className="flex items-center gap-4">
           <a

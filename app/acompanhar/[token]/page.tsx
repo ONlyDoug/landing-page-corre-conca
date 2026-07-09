@@ -183,6 +183,13 @@ export default function AcompanharTokenPage() {
             <p className="mt-2 text-center text-xs text-gray-400">
               Aceita cartão de crédito e Pix
             </p>
+            <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <p className="mb-1 text-sm font-medium text-blue-800">Já efetuou o pagamento?</p>
+              <p className="text-sm text-blue-700">
+                A confirmação pode levar alguns minutos. Se após 10 minutos seu status não
+                atualizar, entre em contato pelo WhatsApp.
+              </p>
+            </div>
           </div>
         )}
 

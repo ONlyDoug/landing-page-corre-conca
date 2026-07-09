@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Loader2 } from "lucide-react"
+import { Loader2, CheckCircle } from "lucide-react"
 import { mascararCPF, modalidadeLabel, formatBRL } from "@/lib/utils"
 
 export interface InscricaoRow {
@@ -29,6 +29,9 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
   const [busca, setBusca] = useState("")
   const [loading, setLoading] = useState<Record<string, boolean>>({})
   const [dados, setDados] = useState(inscritos)
+  const [selecionados, setSelecionados] = useState<Set<string>>(new Set())
+  const [loadingLote, setLoadingLote] = useState(false)
+  const [resultadoLote, setResultadoLote] = useState<string | null>(null)
 
   const filtrados = useMemo(() => {
     return dados.filter((i) => {
@@ -45,6 +48,15 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
     })
   }, [dados, filtroStatus, filtroModalidade, filtroPresenca, busca])
 
+  const pendentesFiltrados = useMemo(
+    () => filtrados.filter((i) => i.status_pagamento === "pendente"),
+    [filtrados]
+  )
+  const todosPendentesSelecionados =
+    pendentesFiltrados.length > 0 && pendentesFiltrados.every((i) => selecionados.has(i.id))
+  const algunsPendentesSelecionados =
+    pendentesFiltrados.some((i) => selecionados.has(i.id)) && !todosPendentesSelecionados
+
   const confirmarPagamento = async (id: string, novoStatus: "confirmado" | "cancelado") => {
     setLoading((prev) => ({ ...prev, [id]: true }))
     try {
@@ -60,6 +72,55 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
       }
     } finally {
       setLoading((prev) => ({ ...prev, [id]: false }))
+    }
+  }
+
+  const toggleSelecionado = (id: string) => {
+    setSelecionados((prev) => {
+      const novo = new Set(prev)
+      if (novo.has(id)) {
+        novo.delete(id)
+      } else {
+        novo.add(id)
+      }
+      return novo
+    })
+  }
+
+  const toggleTodosFiltrados = () => {
+    setSelecionados((prev) => {
+      const novo = new Set(prev)
+      if (todosPendentesSelecionados) {
+        pendentesFiltrados.forEach((i) => novo.delete(i.id))
+      } else {
+        pendentesFiltrados.forEach((i) => novo.add(i.id))
+      }
+      return novo
+    })
+  }
+
+  const confirmarLote = async () => {
+    if (selecionados.size === 0) return
+    setLoadingLote(true)
+    try {
+      const res = await fetch("/api/admin/confirmar-lote", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selecionados) }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setDados((prev) =>
+          prev.map((i) =>
+            selecionados.has(i.id) ? { ...i, status_pagamento: "confirmado" as const } : i
+          )
+        )
+        setResultadoLote(`${data.atualizados} pagamentos confirmados`)
+        setSelecionados(new Set())
+        setTimeout(() => setResultadoLote(null), 4000)
+      }
+    } finally {
+      setLoadingLote(false)
     }
   }
 
@@ -112,6 +173,18 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
         <table className="w-full">
           <thead>
             <tr>
+              <th className="w-10 px-4 py-3 text-left bg-gray-50 border-b">
+                <input
+                  type="checkbox"
+                  checked={todosPendentesSelecionados}
+                  ref={(el) => {
+                    if (el) el.indeterminate = algunsPendentesSelecionados
+                  }}
+                  onChange={toggleTodosFiltrados}
+                  disabled={pendentesFiltrados.length === 0}
+                  aria-label="Selecionar todos os pendentes"
+                />
+              </th>
               <th className="text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3 text-left bg-gray-50 border-b">
                 Nome
               </th>
@@ -146,20 +219,34 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
           </thead>
           <tbody>
             {filtrados.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50">
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">{row.nome}</td>
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">
-                  {mascararCPF(row.cpf)}
+              <tr
+                key={row.id}
+                className={`border-t border-gray-100 transition-colors ${
+                  selecionados.has(row.id) ? "bg-purple-50 hover:bg-purple-50" : "hover:bg-gray-50"
+                }`}
+              >
+                <td className="px-4 py-3">
+                  {row.status_pagamento === "pendente" ? (
+                    <input
+                      type="checkbox"
+                      checked={selecionados.has(row.id)}
+                      onChange={() => toggleSelecionado(row.id)}
+                      className="accent-purple-600"
+                      aria-label={`Selecionar ${row.nome}`}
+                    />
+                  ) : (
+                    <span className="inline-block h-4 w-4" />
+                  )}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">{row.cidade}</td>
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">
+                <td className="px-4 py-3 text-sm text-gray-700">{row.nome}</td>
+                <td className="px-4 py-3 text-sm text-gray-700">{mascararCPF(row.cpf)}</td>
+                <td className="px-4 py-3 text-sm text-gray-700">{row.cidade}</td>
+                <td className="px-4 py-3 text-sm text-gray-700">
                   {modalidadeLabel(row.modalidade)}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">Lote {row.lote}</td>
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">
-                  {formatBRL(row.valor_pago)}
-                </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">
+                <td className="px-4 py-3 text-sm text-gray-700">Lote {row.lote}</td>
+                <td className="px-4 py-3 text-sm text-gray-700">{formatBRL(row.valor_pago)}</td>
+                <td className="px-4 py-3 text-sm text-gray-700">
                   {/* VISUAL: status-badge */}
                   <span
                     className={`text-xs font-medium px-2.5 py-1 rounded-full ${
@@ -173,7 +260,7 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
                     {row.status_pagamento}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">
+                <td className="px-4 py-3 text-sm text-gray-700">
                   {/* VISUAL: presenca-badge */}
                   <span
                     className={`text-xs font-medium px-2.5 py-1 rounded-full ${
@@ -183,10 +270,10 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
                     {row.presenca_confirmada ? "✓ Presente" : "Ausente"}
                   </span>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">
+                <td className="px-4 py-3 text-sm text-gray-700">
                   {row.criado_em ? new Date(row.criado_em).toLocaleDateString("pt-BR") : "-"}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700 border-t border-gray-100">
+                <td className="px-4 py-3 text-sm text-gray-700">
                   {/* VISUAL: acoes */}
                   <div className="flex gap-2">
                     {row.status_pagamento !== "confirmado" && (
@@ -214,6 +301,46 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
           </tbody>
         </table>
       </div>
+
+      {/* VISUAL: barra-flutuante-lote */}
+      {selecionados.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex min-w-80 items-center gap-4 rounded-2xl bg-gray-900 px-6 py-3 text-white shadow-2xl">
+          <span className="text-sm font-medium text-gray-300">
+            {selecionados.size} selecionado{selecionados.size > 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={confirmarLote}
+            disabled={loadingLote}
+            className="flex items-center gap-2 rounded-xl bg-green-500 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-400 disabled:opacity-50"
+          >
+            {loadingLote ? (
+              <>
+                <Loader2 size={15} className="animate-spin" />
+                Confirmando...
+              </>
+            ) : (
+              <>
+                <CheckCircle size={15} />
+                Confirmar pagamento
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => setSelecionados(new Set())}
+            className="ml-auto text-sm text-gray-400 transition-colors hover:text-white"
+          >
+            Limpar
+          </button>
+        </div>
+      )}
+
+      {/* VISUAL: toast-resultado-lote */}
+      {resultadoLote && (
+        <div className="fixed top-6 right-6 z-50 flex items-center gap-3 rounded-xl bg-green-600 px-5 py-3 text-white shadow-xl">
+          <CheckCircle size={18} />
+          <span className="text-sm font-medium">{resultadoLote}</span>
+        </div>
+      )}
     </div>
   )
 }

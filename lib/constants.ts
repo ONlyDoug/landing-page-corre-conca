@@ -77,6 +77,7 @@ export const LOGO_PATH = '/images/logo.svg'
 // Fase 10 — checkout dinâmico via API InfinitePay
 export const INFINITEPAY_HANDLE = 'delso-palmeira-de'
 export const INFINITEPAY_API_URL = 'https://api.checkout.infinitepay.io/links'
+export const INFINITEPAY_PAYMENT_CHECK_URL = 'https://api.checkout.infinitepay.io/payment_check'
 export const SITE_URL = 'https://www.correconca.com'
 // URL efetivamente usada no payload enviado à InfinitePay (WEBHOOK_URL_PRODUCAO acima é só documentação/legado)
 export const WEBHOOK_URL = `${SITE_URL}/api/webhook/infinitepay`

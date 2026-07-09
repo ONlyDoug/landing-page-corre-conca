@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useCallback, useEffect, useRef, useState } from "react"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 import {
   ChevronLeft,
   Loader2,
@@ -10,6 +10,8 @@ import {
   XCircle,
   ExternalLink,
   MessageCircle,
+  RefreshCw,
+  AlertCircle,
 } from "lucide-react"
 import { LINK_INFINITEPAY, REDES_SOCIAIS, LOCALSTORAGE_QR_TOKEN_KEY } from "@/lib/constants"
 import { modalidadeLabel, formatBRL } from "@/lib/utils"
@@ -29,44 +31,103 @@ type InscricaoAtleta = {
 
 type Estado = "carregando" | "ok" | "nao_encontrado" | "erro"
 
+type VerificarPagamentoResposta = {
+  confirmado?: boolean
+  jaConfirmado?: boolean
+  erro?: boolean
+  mensagem?: string
+}
+
 export default function AcompanharTokenPage() {
   const params = useParams<{ token: string }>()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const orderNsuUrl = searchParams.get("order_nsu")
+  const transactionNsuUrl = searchParams.get("transaction_nsu")
+  const slugUrl = searchParams.get("slug")
+
   const [inscricao, setInscricao] = useState<InscricaoAtleta | null>(null)
   const [estado, setEstado] = useState<Estado>("carregando")
+  const [verificando, setVerificando] = useState(false)
+  const [verificacaoFeita, setVerificacaoFeita] = useState(false)
+  const [erroVerificacao, setErroVerificacao] = useState<string | null>(null)
+  const verificacaoDisparadaRef = useRef(false)
+
+  const carregarInscricao = useCallback(async () => {
+    try {
+      const resposta = await fetch(`/api/atleta/${params.token}`)
+
+      if (resposta.status === 404) {
+        window.localStorage.removeItem(LOCALSTORAGE_QR_TOKEN_KEY)
+        setEstado("nao_encontrado")
+        return
+      }
+      if (!resposta.ok) {
+        setEstado("erro")
+        return
+      }
+
+      const { inscricao: inscricaoAtualizada } = (await resposta.json()) as {
+        inscricao: InscricaoAtleta
+      }
+      setInscricao(inscricaoAtualizada)
+      setEstado("ok")
+    } catch {
+      setEstado("erro")
+    }
+  }, [params.token])
 
   useEffect(() => {
     let cancelado = false
-
-    async function buscar() {
-      try {
-        const resposta = await fetch(`/api/atleta/${params.token}`)
-        if (cancelado) return
-
-        if (resposta.status === 404) {
-          window.localStorage.removeItem(LOCALSTORAGE_QR_TOKEN_KEY)
-          setEstado("nao_encontrado")
-          return
-        }
-        if (!resposta.ok) {
-          setEstado("erro")
-          return
-        }
-
-        const { inscricao } = (await resposta.json()) as { inscricao: InscricaoAtleta }
-        if (cancelado) return
-        setInscricao(inscricao)
-        setEstado("ok")
-      } catch {
-        if (!cancelado) setEstado("erro")
-      }
+    async function executar() {
+      if (!cancelado) await carregarInscricao()
     }
-
-    buscar()
+    executar()
     return () => {
       cancelado = true
     }
-  }, [params.token])
+  }, [carregarInscricao])
+
+  const verificarPagamento = useCallback(async () => {
+    setVerificando(true)
+    setErroVerificacao(null)
+    try {
+      const res = await fetch(`/api/atleta/${params.token}/verificar-pagamento`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          order_nsu: orderNsuUrl ?? undefined,
+          transaction_nsu: transactionNsuUrl ?? undefined,
+          slug: slugUrl ?? undefined,
+        }),
+      })
+      const data = (await res.json()) as VerificarPagamentoResposta
+
+      if (data.confirmado || data.jaConfirmado) {
+        await carregarInscricao()
+      } else if (data.erro) {
+        setErroVerificacao(data.mensagem ?? "Não foi possível verificar. Tente novamente.")
+      }
+      setVerificacaoFeita(true)
+    } finally {
+      setVerificando(false)
+    }
+  }, [params.token, orderNsuUrl, transactionNsuUrl, slugUrl, carregarInscricao])
+
+  // Auto-verificação: dispara uma única vez quando o atleta chega do redirect da InfinitePay
+  // (order_nsu na URL) enquanto a inscrição ainda está pendente. O ref evita disparo duplo
+  // do React Strict Mode em dev, já que as duas invocações síncronas do efeito aconteceriam
+  // antes de qualquer estado atualizar.
+  useEffect(() => {
+    if (
+      orderNsuUrl &&
+      inscricao?.status_pagamento === "pendente" &&
+      !verificacaoDisparadaRef.current
+    ) {
+      verificacaoDisparadaRef.current = true
+      verificarPagamento()
+    }
+  }, [inscricao, orderNsuUrl, verificarPagamento])
 
   if (estado === "carregando") {
     return (
@@ -130,6 +191,49 @@ export default function AcompanharTokenPage() {
           </div>
         )}
 
+        {verificando && (
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-5 text-center">
+            <Loader2 className="mx-auto mb-2 animate-spin text-blue-500" size={28} aria-hidden="true" />
+            <p className="font-medium text-blue-800">Verificando seu pagamento...</p>
+            <p className="mt-1 text-sm text-blue-600">Aguarde um momento</p>
+          </div>
+        )}
+
+        {orderNsuUrl &&
+          inscricao.status_pagamento === "pendente" &&
+          !verificacaoFeita &&
+          !verificando && (
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
+              <h3 className="mb-2 font-semibold text-blue-800">Pagamento realizado?</h3>
+              <p className="mb-4 text-sm text-blue-700">
+                Se você acabou de pagar, clique abaixo para confirmar sua inscrição
+                automaticamente.
+              </p>
+              <button
+                type="button"
+                onClick={verificarPagamento}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-blue-600 py-3 font-medium text-white hover:bg-blue-700"
+              >
+                <RefreshCw size={16} aria-hidden="true" />
+                Confirmar meu pagamento
+              </button>
+            </div>
+          )}
+
+        {erroVerificacao && orderNsuUrl && (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <AlertCircle className="mr-2 inline text-red-500" size={18} aria-hidden="true" />
+            <span className="text-sm text-red-700">{erroVerificacao}</span>
+            <button
+              type="button"
+              onClick={verificarPagamento}
+              className="mt-2 block text-sm text-red-600 underline"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        )}
+
         <div className="rounded-xl bg-white p-5 shadow-sm">
           <p className="mb-4 font-semibold text-gray-800">Dados da Inscrição</p>
           <dl className="divide-y divide-gray-100 text-sm">
@@ -190,6 +294,37 @@ export default function AcompanharTokenPage() {
                 atualizar, entre em contato pelo WhatsApp.
               </p>
             </div>
+            {!orderNsuUrl && (
+              <>
+                <hr className="my-4 border-gray-100" />
+                <p className="mb-2 text-sm font-medium text-gray-700">Já efetuou o pagamento?</p>
+                <button
+                  type="button"
+                  onClick={verificarPagamento}
+                  className="flex w-full items-center justify-center gap-2 rounded-lg border border-gray-300 py-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-50"
+                >
+                  <RefreshCw size={14} aria-hidden="true" />
+                  Verificar meu pagamento
+                </button>
+                <p className="mt-1 text-center text-xs text-gray-400">
+                  A verificação pode levar alguns segundos
+                </p>
+              </>
+            )}
+
+            {erroVerificacao && !orderNsuUrl && (
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-4">
+                <AlertCircle className="mr-2 inline text-red-500" size={18} aria-hidden="true" />
+                <span className="text-sm text-red-700">{erroVerificacao}</span>
+                <button
+                  type="button"
+                  onClick={verificarPagamento}
+                  className="mt-2 block text-sm text-red-600 underline"
+                >
+                  Tentar novamente
+                </button>
+              </div>
+            )}
           </div>
         )}
 

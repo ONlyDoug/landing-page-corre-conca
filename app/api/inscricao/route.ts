@@ -18,6 +18,40 @@ function normalizarTelefoneE164(telefoneMascarado: string): string {
   return `+55${telefoneMascarado.replace(/\D/g, "")}`
 }
 
+type InscricaoExistente = {
+  qrCodeToken: string | null
+  statusPagamento: string
+}
+
+/** Busca inscrição existente por CPF; retorna null tanto se não encontrar quanto se a busca falhar. */
+async function buscarInscricaoPorCpf(cpfLimpo: string): Promise<InscricaoExistente | null> {
+  const { data, error } = await supabaseAdmin
+    .from("inscricoes")
+    .select("qr_code_token, status_pagamento")
+    .eq("cpf", cpfLimpo)
+    .maybeSingle()
+
+  if (error) {
+    console.error("[inscricao] falha ao verificar CPF existente:", error)
+    return null
+  }
+  if (!data) return null
+
+  return { qrCodeToken: data.qr_code_token, statusPagamento: data.status_pagamento }
+}
+
+function respostaJaInscrito(inscricaoExistente: InscricaoExistente) {
+  return NextResponse.json(
+    {
+      success: false,
+      jaInscrito: true,
+      qrCodeToken: inscricaoExistente.qrCodeToken,
+      statusPagamento: inscricaoExistente.statusPagamento,
+    },
+    { status: 409 }
+  )
+}
+
 /** Gera o link de checkout dinâmico na InfinitePay; nunca lança — falhas caem no fallback estático. */
 async function gerarCheckoutDinamico(params: {
   inscricaoId: string
@@ -106,6 +140,11 @@ export async function POST(request: Request) {
   const lote = getLoteAtivo(new Date())
   const cpfLimpo = parsed.data.cpf.replace(/\D/g, "")
 
+  const inscricaoExistente = await buscarInscricaoPorCpf(cpfLimpo)
+  if (inscricaoExistente) {
+    return respostaJaInscrito(inscricaoExistente)
+  }
+
   const { data, error } = await supabaseAdmin
     .from("inscricoes")
     .insert({
@@ -124,6 +163,10 @@ export async function POST(request: Request) {
 
   if (error) {
     if (error.code === "23505") {
+      const inscricaoConcorrente = await buscarInscricaoPorCpf(cpfLimpo)
+      if (inscricaoConcorrente) {
+        return respostaJaInscrito(inscricaoConcorrente)
+      }
       return NextResponse.json(
         { success: false, errors: { formErrors: ["Este CPF já possui uma inscrição."], fieldErrors: {} } },
         { status: 409 }

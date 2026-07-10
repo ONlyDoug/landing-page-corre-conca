@@ -43,8 +43,6 @@ export default function AcompanharTokenPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const orderNsuUrl = searchParams.get("order_nsu")
-  const transactionNsuUrl = searchParams.get("transaction_nsu")
-  const slugUrl = searchParams.get("slug")
 
   const [inscricao, setInscricao] = useState<InscricaoAtleta | null>(null)
   const [estado, setEstado] = useState<Estado>("carregando")
@@ -94,12 +92,6 @@ export default function AcompanharTokenPage() {
     try {
       const res = await fetch(`/api/atleta/${params.token}/verificar-pagamento`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          order_nsu: orderNsuUrl ?? undefined,
-          transaction_nsu: transactionNsuUrl ?? undefined,
-          slug: slugUrl ?? undefined,
-        }),
       })
       const data = (await res.json()) as VerificarPagamentoResposta
 
@@ -112,7 +104,7 @@ export default function AcompanharTokenPage() {
     } finally {
       setVerificando(false)
     }
-  }, [params.token, orderNsuUrl, transactionNsuUrl, slugUrl, carregarInscricao])
+  }, [params.token, carregarInscricao])
 
   // Auto-verificação: dispara uma única vez quando o atleta chega do redirect da InfinitePay
   // (order_nsu na URL) enquanto a inscrição ainda está pendente. O ref evita disparo duplo

@@ -3,22 +3,6 @@ import { supabaseAdmin } from "@/lib/supabase/server"
 import type { Json } from "@/lib/supabase/database.types"
 import { INFINITEPAY_HANDLE, INFINITEPAY_PAYMENT_CHECK_URL } from "@/lib/constants"
 
-type VerificarPagamentoBody = {
-  order_nsu?: string
-  transaction_nsu?: string
-  slug?: string
-}
-
-function parseBody(body: unknown): VerificarPagamentoBody {
-  if (typeof body !== "object" || body === null) return {}
-  const b = body as Record<string, unknown>
-  return {
-    order_nsu: typeof b.order_nsu === "string" ? b.order_nsu : undefined,
-    transaction_nsu: typeof b.transaction_nsu === "string" ? b.transaction_nsu : undefined,
-    slug: typeof b.slug === "string" ? b.slug : undefined,
-  }
-}
-
 type InfinitePayPaymentCheckResponse = {
   success?: boolean
   paid?: boolean
@@ -37,7 +21,7 @@ function parsePaymentCheckResponse(body: unknown): InfinitePayPaymentCheckRespon
   }
 }
 
-export async function POST(request: Request, { params }: { params: Promise<{ token: string }> }) {
+export async function POST(_request: Request, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
 
   const { data: inscricao, error: erroBusca } = await supabaseAdmin
@@ -57,19 +41,15 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
     return NextResponse.json({ jaConfirmado: true })
   }
 
-  let requestBody: unknown
-  try {
-    requestBody = await request.json()
-  } catch {
-    requestBody = {}
-  }
-  const campos = parseBody(requestBody)
-
+  // order_nsu nunca vem do cliente: é sempre o id da própria inscrição, o mesmo valor
+  // registrado na InfinitePay na criação do link dinâmico (app/api/inscricao/route.ts).
+  // Aceitar um order_nsu arbitrário do body permitiria confirmar uma inscrição não paga
+  // reaproveitando o order_nsu de um pagamento real de outra inscrição.
   const payload = {
     handle: INFINITEPAY_HANDLE,
-    order_nsu: campos.order_nsu ?? inscricao.id,
-    transaction_nsu: campos.transaction_nsu ?? "",
-    slug: campos.slug ?? "",
+    order_nsu: inscricao.id,
+    transaction_nsu: "",
+    slug: "",
   }
 
   let resposta: InfinitePayPaymentCheckResponse
@@ -120,7 +100,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ tok
 
   const { error: erroInsertPagamento } = await supabaseAdmin.from("pagamentos").insert({
     inscricao_id: inscricao.id,
-    infinitepay_id: campos.transaction_nsu ?? null,
+    infinitepay_id: null,
     status: "confirmado_payment_check",
     valor: paidAmount / 100,
     payload: respostaCompleta,

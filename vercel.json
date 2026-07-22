@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/limpar-expirados",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }

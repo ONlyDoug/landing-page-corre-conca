@@ -1,40 +1,49 @@
-import { writeFileSync, mkdirSync, readdirSync, existsSync } from 'fs'
+import { writeFileSync, mkdirSync, readdirSync, existsSync, copyFileSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
 import sharp from 'sharp'
 
 let configurado = false
 
+const ARQUIVOS_FONTE = ['Poppins-Regular.ttf', 'Poppins-SemiBold.ttf', 'Poppins-Bold.ttf', 'Poppins-Black.ttf']
+
 /**
- * Ambientes serverless (Vercel Lambda) não têm nenhuma fonte de sistema instalada, então o
- * librsvg usado internamente pelo sharp para rasterizar SVG->PNG não renderiza texto nenhum
- * por padrão. @font-face com data URI embutida no SVG também não funciona neste build do
- * librsvg (o texto sempre cai no fallback padrão, ignorando a fonte declarada). A solução que
- * funciona localmente é registrar a pasta com as fontes via um fonts.conf customizado, gerado
- * em /tmp (único diretório com permissão de escrita na Lambda) e apontado pela env var
- * FONTCONFIG_FILE antes da primeira renderização.
+ * Ambientes serverless (Vercel Lambda) não têm nenhuma fonte de sistema instalada. O build do
+ * sharp usado em produção renderiza SVG via `resvg` (Rust, sem fontconfig/pango/@font-face —
+ * ver `sharp.versions`), diferente do build local que usa librsvg+fontconfig. `resvg`/`fontdb`
+ * não lê FONTCONFIG_FILE nem @font-face; ele escaneia diretórios fixos do sistema, incluindo
+ * `$HOME/.fonts`. Como `/var/task` é somente leitura na Lambda, apontamos HOME para /tmp
+ * (gravável) e copiamos as fontes para lá antes da primeira renderização. Mantém também o
+ * FONTCONFIG_PATH como fallback defensivo para builds que ainda usam fontconfig.
  */
 export function configurarFontconfig(): void {
   if (configurado) return
 
-  const cacheDir = join(tmpdir(), 'corre-conca-fontconfig-cache')
-  const confPath = join(tmpdir(), 'corre-conca-fonts.conf')
   const fontsDir = join(process.cwd(), 'public', 'fonts')
-
   const fontsDirExiste = existsSync(fontsDir)
-  const arquivosFontes = fontsDirExiste ? readdirSync(fontsDir) : []
+  console.log(`[fontconfig] cwd=${process.cwd()} fontsDir=${fontsDir} existe=${fontsDirExiste}`)
+
+  const homeDir = join(tmpdir(), 'corre-conca-home')
+  const userFontsDir = join(homeDir, '.fonts')
+  mkdirSync(userFontsDir, { recursive: true })
+  for (const arquivo of ARQUIVOS_FONTE) {
+    copyFileSync(join(fontsDir, arquivo), join(userFontsDir, arquivo))
+  }
+  process.env.HOME = homeDir
   console.log(
-    `[fontconfig] cwd=${process.cwd()} fontsDir=${fontsDir} existe=${fontsDirExiste} arquivos=${JSON.stringify(arquivosFontes)}`
+    `[fontconfig] HOME=${homeDir} userFontsDir=${userFontsDir} arquivos=${JSON.stringify(readdirSync(userFontsDir))}`
   )
 
+  const cacheDir = join(tmpdir(), 'corre-conca-fontconfig-cache')
+  const confDir = join(tmpdir(), 'corre-conca-fontconfig')
   mkdirSync(cacheDir, { recursive: true })
+  mkdirSync(confDir, { recursive: true })
   writeFileSync(
-    confPath,
+    join(confDir, 'fonts.conf'),
     `<?xml version="1.0"?>\n<!DOCTYPE fontconfig SYSTEM "fonts.dtd">\n<fontconfig>\n  <dir>${fontsDir}</dir>\n  <cachedir>${cacheDir}</cachedir>\n</fontconfig>\n`
   )
+  process.env.FONTCONFIG_PATH = confDir
 
-  process.env.FONTCONFIG_FILE = confPath
-  console.log(`[fontconfig] FONTCONFIG_FILE=${confPath} conteudo escrito, cacheDir=${cacheDir}`)
   console.log(`[fontconfig] sharp.versions=${JSON.stringify(sharp.versions)}`)
   configurado = true
 }

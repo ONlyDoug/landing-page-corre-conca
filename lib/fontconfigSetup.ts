@@ -1,6 +1,7 @@
 import { writeFileSync, mkdirSync, readdirSync, existsSync } from 'fs'
 import { join } from 'path'
 import { tmpdir } from 'os'
+import sharp from 'sharp'
 
 let configurado = false
 
@@ -34,5 +35,6 @@ export function configurarFontconfig(): void {
 
   process.env.FONTCONFIG_FILE = confPath
   console.log(`[fontconfig] FONTCONFIG_FILE=${confPath} conteudo escrito, cacheDir=${cacheDir}`)
+  console.log(`[fontconfig] sharp.versions=${JSON.stringify(sharp.versions)}`)
   configurado = true
 }

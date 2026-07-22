@@ -3,8 +3,11 @@ import QRCode from 'qrcode'
 import { readFileSync } from 'fs'
 import { join } from 'path'
 import { getLogoDataUri } from './logoDataUri'
+import { configurarFontconfig } from './fontconfigSetup'
 import { modalidadeLabel } from './utils'
 import { SITE_URL } from './constants'
+
+configurarFontconfig()
 
 type DadosAtleta = {
   nome: string

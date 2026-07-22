@@ -12,6 +12,9 @@ import {
   MessageCircle,
   RefreshCw,
   AlertCircle,
+  Shuffle,
+  Download,
+  IdCard,
 } from "lucide-react"
 import { LINK_INFINITEPAY, REDES_SOCIAIS, LOCALSTORAGE_QR_TOKEN_KEY } from "@/lib/constants"
 import { modalidadeLabel, formatBRL, isStatusAguardando } from "@/lib/utils"
@@ -19,6 +22,7 @@ import { modalidadeLabel, formatBRL, isStatusAguardando } from "@/lib/utils"
 type InscricaoAtleta = {
   nome: string
   modalidade: string
+  numero_bib: number | null
   valor_pago: number
   status_pagamento: "pendente" | "aguardando_pagamento" | "confirmado" | "cancelado"
   presenca_confirmada: boolean | null
@@ -49,6 +53,9 @@ export default function AcompanharTokenPage() {
   const [verificacaoFeita, setVerificacaoFeita] = useState(false)
   const [erroVerificacao, setErroVerificacao] = useState<string | null>(null)
   const verificacaoDisparadaRef = useRef(false)
+  const [escolhendoBib, setEscolhendoBib] = useState(false)
+  const [numeroDesejado, setNumeroDesejado] = useState("")
+  const [erroBib, setErroBib] = useState<string | null>(null)
 
   const carregarInscricao = useCallback(async () => {
     try {
@@ -104,6 +111,40 @@ export default function AcompanharTokenPage() {
       setVerificando(false)
     }
   }, [params.token, carregarInscricao])
+
+  const escolherBib = useCallback(
+    async (numero?: number) => {
+      setEscolhendoBib(true)
+      setErroBib(null)
+      try {
+        const res = await fetch(`/api/atleta/${params.token}/escolher-bib`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ numero }),
+        })
+        const data = (await res.json()) as { numero?: number; error?: string }
+        if (res.ok && typeof data.numero === "number") {
+          setInscricao((prev) => (prev ? { ...prev, numero_bib: data.numero! } : prev))
+        } else {
+          const mensagens: Record<string, string> = {
+            numero_invalido: "Escolha um número entre 0 e 500.",
+            numero_indisponivel: "Este número já foi escolhido. Tente outro.",
+            sem_numeros_disponiveis_no_momento:
+              "Muita gente escolhendo agora. Tente novamente em instantes.",
+            pagamento_nao_confirmado: "Seu pagamento ainda não foi confirmado.",
+          }
+          setErroBib(
+            (data.error && mensagens[data.error]) ?? "Erro ao escolher número. Tente novamente."
+          )
+        }
+      } catch {
+        setErroBib("Erro ao escolher número. Tente novamente.")
+      } finally {
+        setEscolhendoBib(false)
+      }
+    },
+    [params.token]
+  )
 
   // Auto-verificação: dispara uma única vez quando o atleta chega do redirect da InfinitePay
   // (order_nsu na URL) enquanto a inscrição ainda está pendente. O ref evita disparo duplo
@@ -224,6 +265,80 @@ export default function AcompanharTokenPage() {
             </button>
           </div>
         )}
+
+        {inscricao.status_pagamento === "confirmado" &&
+          (inscricao.numero_bib === null ? (
+            <div className="rounded-xl bg-white p-5 shadow-sm">
+              <p className="mb-1 font-semibold text-gray-800">Escolha seu número</p>
+              <p className="mb-4 text-sm text-gray-500">Números de 0 a 500 disponíveis</p>
+
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="500"
+                  placeholder="Ex: 42"
+                  value={numeroDesejado}
+                  onChange={(e) => setNumeroDesejado(e.target.value)}
+                  className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <button
+                  type="button"
+                  onClick={() => escolherBib(Number(numeroDesejado))}
+                  disabled={escolhendoBib || numeroDesejado === ""}
+                  className="rounded-lg bg-roxo px-5 py-2.5 text-sm font-medium text-white hover:bg-roxo-dark disabled:opacity-50"
+                >
+                  {escolhendoBib ? "Escolhendo..." : "Escolher"}
+                </button>
+              </div>
+
+              <p className="my-3 text-center text-xs text-gray-400">ou</p>
+
+              <button
+                type="button"
+                onClick={() => escolherBib(undefined)}
+                disabled={escolhendoBib}
+                className="flex w-full items-center justify-center gap-2 rounded-lg border border-purple-300 py-2.5 text-sm font-medium text-roxo hover:bg-purple-50 disabled:opacity-50"
+              >
+                <Shuffle size={16} aria-hidden="true" />
+                {escolhendoBib ? "Escolhendo..." : "Gerar número aleatório"}
+              </button>
+
+              {erroBib && (
+                <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {erroBib}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="rounded-xl bg-gradient-to-br from-roxo to-roxo-dark p-6 text-center">
+              <p className="mb-1 text-xs font-medium tracking-widest text-purple-200">
+                SEU NÚMERO
+              </p>
+              <p className="text-6xl font-black text-white">
+                {String(inscricao.numero_bib).padStart(3, "0")}
+              </p>
+
+              <div className="mt-4 flex gap-3">
+                <a
+                  href={`/api/atleta/${params.token}/bib.png`}
+                  download
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-white py-2.5 text-sm font-medium text-roxo"
+                >
+                  <Download size={16} aria-hidden="true" />
+                  Baixar Bib
+                </a>
+                <a
+                  href={`/api/atleta/${params.token}/credencial.png`}
+                  download
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-purple-500 py-2.5 text-sm font-medium text-white"
+                >
+                  <IdCard size={16} aria-hidden="true" />
+                  Baixar Credencial
+                </a>
+              </div>
+            </div>
+          ))}
 
         <div className="rounded-xl bg-white p-5 shadow-sm">
           <p className="mb-4 font-semibold text-gray-800">Dados da Inscrição</p>

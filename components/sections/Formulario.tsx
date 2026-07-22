@@ -88,7 +88,7 @@ export default function Formulario() {
       window.localStorage.setItem(LOCALSTORAGE_QR_TOKEN_KEY, result.qrCodeToken)
       setCheckoutUrl(result.checkoutUrl)
       setQrCodeToken(result.qrCodeToken)
-      setIsModalOpen(true)
+      window.location.assign(result.checkoutUrl)
     } catch {
       setSubmitError(true)
     }

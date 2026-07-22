@@ -14,14 +14,13 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { LINK_INFINITEPAY, REDES_SOCIAIS, LOCALSTORAGE_QR_TOKEN_KEY } from "@/lib/constants"
-import { modalidadeLabel, formatBRL } from "@/lib/utils"
+import { modalidadeLabel, formatBRL, isStatusAguardando } from "@/lib/utils"
 
 type InscricaoAtleta = {
   nome: string
   modalidade: string
-  lote: number
   valor_pago: number
-  status_pagamento: "pendente" | "confirmado" | "cancelado"
+  status_pagamento: "pendente" | "aguardando_pagamento" | "confirmado" | "cancelado"
   presenca_confirmada: boolean | null
   criado_em: string | null
   tamanho_camisa: string
@@ -113,7 +112,7 @@ export default function AcompanharTokenPage() {
   useEffect(() => {
     if (
       orderNsuUrl &&
-      inscricao?.status_pagamento === "pendente" &&
+      isStatusAguardando(inscricao?.status_pagamento) &&
       !verificacaoDisparadaRef.current
     ) {
       verificacaoDisparadaRef.current = true
@@ -164,7 +163,7 @@ export default function AcompanharTokenPage() {
             <p className="mt-1 text-sm text-green-700">Sua vaga está garantida. Boa corrida!</p>
           </div>
         )}
-        {inscricao.status_pagamento === "pendente" && (
+        {isStatusAguardando(inscricao.status_pagamento) && (
           <div className="rounded-xl border border-yellow-200 bg-yellow-50 p-5 text-center">
             <Clock className="mx-auto mb-2 h-10 w-10 text-yellow-500" aria-hidden="true" />
             <p className="text-lg font-bold text-yellow-800">Pagamento Pendente</p>
@@ -192,7 +191,7 @@ export default function AcompanharTokenPage() {
         )}
 
         {orderNsuUrl &&
-          inscricao.status_pagamento === "pendente" &&
+          isStatusAguardando(inscricao.status_pagamento) &&
           !verificacaoFeita &&
           !verificando && (
             <div className="rounded-xl border border-blue-200 bg-blue-50 p-5">
@@ -242,10 +241,6 @@ export default function AcompanharTokenPage() {
               <dd className="font-medium text-gray-800">{inscricao.tamanho_camisa}</dd>
             </div>
             <div className="flex justify-between py-2.5">
-              <dt className="text-gray-500">Lote</dt>
-              <dd className="font-medium text-gray-800">Lote {inscricao.lote}</dd>
-            </div>
-            <div className="flex justify-between py-2.5">
               <dt className="text-gray-500">Valor</dt>
               <dd className="font-medium text-gray-800">{formatBRL(inscricao.valor_pago)}</dd>
             </div>
@@ -264,7 +259,7 @@ export default function AcompanharTokenPage() {
           </dl>
         </div>
 
-        {inscricao.status_pagamento === "pendente" && (
+        {isStatusAguardando(inscricao.status_pagamento) && (
           <div className="rounded-xl bg-white p-5 shadow-sm">
             <p className="mb-4 font-semibold text-gray-800">Efetuar Pagamento</p>
             <a

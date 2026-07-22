@@ -86,8 +86,13 @@ export async function POST(request: Request) {
       if (valorRecebido != null && valorRecebido >= inscricao.valor_pago) {
         const { error: erroUpdateInscricao } = await supabaseAdmin
           .from("inscricoes")
-          .update({ status_pagamento: "confirmado" })
+          .update({
+            status_pagamento: "confirmado",
+            transaction_nsu: campos.transaction_nsu ?? null,
+            invoice_slug: campos.invoice_slug ?? null,
+          })
           .eq("id", orderNsu)
+          .in("status_pagamento", ["pendente", "aguardando_pagamento"])
 
         if (erroUpdateInscricao) {
           console.error("[webhook/infinitepay] falha ao confirmar pagamento da inscricao", erroUpdateInscricao)

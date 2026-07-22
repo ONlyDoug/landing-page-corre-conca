@@ -1,26 +1,17 @@
 import { supabaseAdmin } from "@/lib/supabase/server"
-import { Users, CheckCircle, Clock, DollarSign } from "lucide-react"
-
-function formatBRL(value: number) {
-  return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value)
-}
+import { Users, CheckCircle, Hash, HelpCircle } from "lucide-react"
+import { statusPagamentoLabel, statusPagamentoBadgeClasses } from "@/lib/utils"
 
 function modalidadeLabel(modalidade: string) {
   return modalidade === "caminhada_3km" ? "Caminhada 3KM" : "Corrida 6KM"
-}
-
-function statusBadgeClasses(status: string) {
-  if (status === "confirmado") return "bg-green-100 text-green-800"
-  if (status === "pendente") return "bg-yellow-100 text-yellow-800"
-  return "bg-red-100 text-red-800"
 }
 
 export default async function DashboardPage() {
   const [
     { count: total },
     { count: confirmados },
-    { count: pendentes },
-    { data: pagos },
+    { count: comBib },
+    { count: semBib },
     { data: ultimas },
   ] = await Promise.all([
     supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }),
@@ -31,16 +22,17 @@ export default async function DashboardPage() {
     supabaseAdmin
       .from("inscricoes")
       .select("*", { count: "exact", head: true })
-      .eq("status_pagamento", "pendente"),
-    supabaseAdmin.from("inscricoes").select("valor_pago").eq("status_pagamento", "confirmado"),
+      .not("numero_bib", "is", null),
+    supabaseAdmin
+      .from("inscricoes")
+      .select("*", { count: "exact", head: true })
+      .is("numero_bib", null),
     supabaseAdmin
       .from("inscricoes")
       .select("nome, modalidade, status_pagamento, criado_em")
       .order("criado_em", { ascending: false })
       .limit(10),
   ])
-
-  const totalArrecadado = (pagos ?? []).reduce((sum, row) => sum + row.valor_pago, 0)
 
   return (
     <div>
@@ -68,25 +60,25 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        {/* VISUAL: card-pendentes */}
+        {/* VISUAL: card-com-bib */}
         <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-          <div className="bg-yellow-50 rounded-lg p-2.5 text-yellow-600">
-            <Clock />
+          <div className="bg-purple-50 rounded-lg p-2.5 text-roxo">
+            <Hash />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-800">{pendentes ?? 0}</p>
-            <p className="text-sm text-gray-500">Pendentes</p>
+            <p className="text-2xl font-bold text-gray-800">{comBib ?? 0}</p>
+            <p className="text-sm text-gray-500">Com Bib</p>
           </div>
         </div>
 
-        {/* VISUAL: card-arrecadado */}
+        {/* VISUAL: card-sem-bib */}
         <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-          <div className="bg-purple-50 rounded-lg p-2.5 text-roxo">
-            <DollarSign />
+          <div className="bg-gray-100 rounded-lg p-2.5 text-gray-500">
+            <HelpCircle />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-800">{formatBRL(totalArrecadado)}</p>
-            <p className="text-sm text-gray-500">Arrecadado</p>
+            <p className="text-2xl font-bold text-gray-800">{semBib ?? 0}</p>
+            <p className="text-sm text-gray-500">Sem Bib</p>
           </div>
         </div>
       </div>
@@ -120,8 +112,8 @@ export default async function DashboardPage() {
                 <td className="px-5 py-3.5 text-sm text-gray-700">{modalidadeLabel(row.modalidade)}</td>
                 <td className="px-5 py-3.5 text-sm text-gray-700">
                   {/* VISUAL: status-badge */}
-                  <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${statusBadgeClasses(row.status_pagamento)}`}>
-                    {row.status_pagamento}
+                  <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${statusPagamentoBadgeClasses(row.status_pagamento)}`}>
+                    {statusPagamentoLabel(row.status_pagamento)}
                   </span>
                 </td>
                 <td className="px-5 py-3.5 text-sm text-gray-700">

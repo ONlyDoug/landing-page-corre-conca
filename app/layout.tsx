@@ -14,9 +14,9 @@ const poppins = Poppins({
   weight: ["700", "800"],
 })
 
-const TITULO = "Corre Conça — Corrida Solidária | 06 de Setembro em Conceição da Feira"
+const TITULO = "Corre Conça | 06 de Setembro em Conceição da Feira"
 const DESCRICAO =
-  "Participe da 1ª Corrida Solidária Corre Conça! Caminhada 3KM e Corrida 6KM no dia 06 de setembro em Conceição da Feira – BA. Inscreva-se agora!"
+  "Participe da Corre Conça! Caminhada 3KM e Corrida 6KM no dia 06 de setembro em Conceição da Feira – BA. Inscreva-se agora!"
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://correconca.com"),

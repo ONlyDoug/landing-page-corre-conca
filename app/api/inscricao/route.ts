@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server"
 import { inscricaoSchema, parseDataNascimentoISO } from "@/lib/validations"
-import { getLoteAtivo, modalidadeLabel } from "@/lib/utils"
+import { modalidadeLabel } from "@/lib/utils"
 import {
   LINK_INFINITEPAY,
   INFINITEPAY_HANDLE,
   INFINITEPAY_API_URL,
   SITE_URL,
   WEBHOOK_URL,
+  VALOR_INSCRICAO,
 } from "@/lib/constants"
 import { supabaseAdmin } from "@/lib/supabase/server"
 
@@ -137,7 +138,6 @@ export async function POST(request: Request) {
     )
   }
 
-  const lote = getLoteAtivo(new Date())
   const cpfLimpo = parsed.data.cpf.replace(/\D/g, "")
 
   const inscricaoExistente = await buscarInscricaoPorCpf(cpfLimpo)
@@ -155,8 +155,9 @@ export async function POST(request: Request) {
       telefone: parsed.data.telefone,
       tamanho_camisa: parsed.data.tamanhoCamisa,
       modalidade: parsed.data.modalidade,
-      lote: lote.numero,
-      valor_pago: lote.valor,
+      lote: 1,
+      valor_pago: VALOR_INSCRICAO,
+      status_pagamento: "aguardando_pagamento",
     })
     .select("id, qr_code_token")
     .single()
@@ -189,7 +190,7 @@ export async function POST(request: Request) {
     nome: parsed.data.nome,
     telefone: parsed.data.telefone,
     modalidade: parsed.data.modalidade,
-    valor: lote.valor,
+    valor: VALOR_INSCRICAO,
   })
 
   if (checkoutUrl !== LINK_INFINITEPAY) {

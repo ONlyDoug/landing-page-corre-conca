@@ -2,7 +2,14 @@
 
 import { useMemo, useState } from "react"
 import { Loader2, CheckCircle } from "lucide-react"
-import { mascararCPF, modalidadeLabel, formatBRL } from "@/lib/utils"
+import {
+  mascararCPF,
+  modalidadeLabel,
+  formatBRL,
+  isStatusAguardando,
+  statusPagamentoLabel,
+  statusPagamentoBadgeClasses,
+} from "@/lib/utils"
 
 export interface InscricaoRow {
   id: string
@@ -10,9 +17,9 @@ export interface InscricaoRow {
   cpf: string
   cidade: string
   modalidade: "caminhada_3km" | "corrida_6km"
-  lote: number
+  numero_bib: number | null
   valor_pago: number
-  status_pagamento: "pendente" | "confirmado" | "cancelado"
+  status_pagamento: "pendente" | "aguardando_pagamento" | "confirmado" | "cancelado"
   presenca_confirmada: boolean | null
   criado_em: string | null
   qr_code_token: string | null
@@ -26,6 +33,7 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
   const [filtroStatus, setFiltroStatus] = useState<string>("todos")
   const [filtroModalidade, setFiltroModalidade] = useState<string>("todos")
   const [filtroPresenca, setFiltroPresenca] = useState<string>("todos")
+  const [filtroBib, setFiltroBib] = useState<string>("todos")
   const [busca, setBusca] = useState("")
   const [loading, setLoading] = useState<Record<string, boolean>>({})
   const [dados, setDados] = useState(inscritos)
@@ -35,10 +43,18 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
 
   const filtrados = useMemo(() => {
     return dados.filter((i) => {
-      if (filtroStatus !== "todos" && i.status_pagamento !== filtroStatus) return false
+      if (filtroStatus !== "todos") {
+        if (filtroStatus === "aguardando") {
+          if (!isStatusAguardando(i.status_pagamento)) return false
+        } else if (i.status_pagamento !== filtroStatus) {
+          return false
+        }
+      }
       if (filtroModalidade !== "todos" && i.modalidade !== filtroModalidade) return false
       if (filtroPresenca === "presente" && !i.presenca_confirmada) return false
       if (filtroPresenca === "ausente" && i.presenca_confirmada) return false
+      if (filtroBib === "com" && i.numero_bib == null) return false
+      if (filtroBib === "sem" && i.numero_bib != null) return false
       if (busca) {
         const b = busca.toLowerCase()
         const cpfLimpo = i.cpf.replace(/\D/g, "")
@@ -46,10 +62,10 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
       }
       return true
     })
-  }, [dados, filtroStatus, filtroModalidade, filtroPresenca, busca])
+  }, [dados, filtroStatus, filtroModalidade, filtroPresenca, filtroBib, busca])
 
   const pendentesFiltrados = useMemo(
-    () => filtrados.filter((i) => i.status_pagamento === "pendente"),
+    () => filtrados.filter((i) => isStatusAguardando(i.status_pagamento)),
     [filtrados]
   )
   const todosPendentesSelecionados =
@@ -142,7 +158,7 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
         >
           <option value="todos">Todos os status</option>
           <option value="confirmado">Confirmado</option>
-          <option value="pendente">Pendente</option>
+          <option value="aguardando">Aguardando pagamento</option>
           <option value="cancelado">Cancelado</option>
         </select>
         <select
@@ -163,6 +179,15 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
           <option value="presente">Presentes</option>
           <option value="ausente">Ausentes</option>
         </select>
+        <select
+          value={filtroBib}
+          onChange={(e) => setFiltroBib(e.target.value)}
+          className="bg-white text-gray-900 border border-gray-300 rounded-lg px-3 py-2 text-sm"
+        >
+          <option value="todos">Com/sem bib</option>
+          <option value="com">Com bib</option>
+          <option value="sem">Sem bib</option>
+        </select>
         <span className="text-sm text-gray-500 ml-auto self-center">
           {filtrados.length} inscritos encontrados
         </span>
@@ -182,7 +207,7 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
                   }}
                   onChange={toggleTodosFiltrados}
                   disabled={pendentesFiltrados.length === 0}
-                  aria-label="Selecionar todos os pendentes"
+                  aria-label="Selecionar todos aguardando pagamento"
                 />
               </th>
               <th className="text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3 text-left bg-gray-50 border-b">
@@ -198,7 +223,7 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
                 Modalidade
               </th>
               <th className="text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3 text-left bg-gray-50 border-b">
-                Lote
+                Bib
               </th>
               <th className="text-xs font-medium text-gray-500 uppercase tracking-wide px-4 py-3 text-left bg-gray-50 border-b">
                 Valor
@@ -226,7 +251,7 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
                 }`}
               >
                 <td className="px-4 py-3">
-                  {row.status_pagamento === "pendente" ? (
+                  {isStatusAguardando(row.status_pagamento) ? (
                     <input
                       type="checkbox"
                       checked={selecionados.has(row.id)}
@@ -244,20 +269,14 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
                 <td className="px-4 py-3 text-sm text-gray-700">
                   {modalidadeLabel(row.modalidade)}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700">Lote {row.lote}</td>
+                <td className="px-4 py-3 text-sm text-gray-700">{row.numero_bib ?? "—"}</td>
                 <td className="px-4 py-3 text-sm text-gray-700">{formatBRL(row.valor_pago)}</td>
                 <td className="px-4 py-3 text-sm text-gray-700">
                   {/* VISUAL: status-badge */}
                   <span
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                      row.status_pagamento === "confirmado"
-                        ? "bg-green-100 text-green-800"
-                        : row.status_pagamento === "pendente"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                    }`}
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusPagamentoBadgeClasses(row.status_pagamento)}`}
                   >
-                    {row.status_pagamento}
+                    {statusPagamentoLabel(row.status_pagamento)}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700">

@@ -1,14 +1,12 @@
 export type Modalidade = { nome: string; distancia: string; slug: 'caminhada_3km' | 'corrida_6km' }
-export type LoteInfo = { numero: 1 | 2; valor: number; condicao: string }
 
 export const EVENTO = {
-  nome: 'Corre Conça — Corrida Solidária',
+  nome: 'Corre Conça',
   edicao: '1ª edição',
   dataEvento: '2026-09-06T06:00:00-03:00',
   local: 'Conceição da Feira, BA',
 }
 
-export const VIRADA_LOTE = '2026-08-01T23:59:59-03:00'
 export const DATA_EVENTO_ISO = EVENTO.dataEvento
 
 export const MODALIDADES: Modalidade[] = [
@@ -16,10 +14,8 @@ export const MODALIDADES: Modalidade[] = [
   { nome: 'Corrida', distancia: '6KM', slug: 'corrida_6km' },
 ]
 
-export const LOTES: LoteInfo[] = [
-  { numero: 1, valor: 25.0, condicao: 'R$ 25,00 + 2kg de alimento não perecível' },
-  { numero: 2, valor: 35.0, condicao: 'R$ 35,00 + 2kg de alimento não perecível' },
-]
+export const VALOR_INSCRICAO = 25.0
+export const CONDICAO_INSCRICAO = 'R$ 25,00 + 2kg de alimento não perecível'
 
 export const TAMANHOS_CAMISA = ['P', 'M', 'G', 'GG', 'XG'] as const
 

@@ -48,7 +48,7 @@ export async function POST(request: Request) {
     .from("inscricoes")
     .update({ status_pagamento: "confirmado" })
     .in("id", idsValidos)
-    .eq("status_pagamento", "pendente")
+    .in("status_pagamento", ["pendente", "aguardando_pagamento"])
     .select("id, nome, status_pagamento")
 
   if (error) {

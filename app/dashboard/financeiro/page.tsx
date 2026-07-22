@@ -9,20 +9,16 @@ export default async function FinanceiroPage() {
     { count: pendentes },
     { count: caminhada },
     { count: corrida },
-    { count: lote1 },
-    { count: lote2 },
     { data: arrecadadoData },
     { data: pendenteData },
     { data: evolucao },
   ] = await Promise.all([
     supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).eq("status_pagamento", "confirmado"),
-    supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).eq("status_pagamento", "pendente"),
+    supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).in("status_pagamento", ["pendente", "aguardando_pagamento"]),
     supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).eq("modalidade", "caminhada_3km"),
     supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).eq("modalidade", "corrida_6km"),
-    supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).eq("lote", 1),
-    supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).eq("lote", 2),
     supabaseAdmin.from("inscricoes").select("valor_pago").eq("status_pagamento", "confirmado"),
-    supabaseAdmin.from("inscricoes").select("valor_pago").eq("status_pagamento", "pendente"),
+    supabaseAdmin.from("inscricoes").select("valor_pago").in("status_pagamento", ["pendente", "aguardando_pagamento"]),
     supabaseAdmin.from("inscricoes").select("criado_em").order("criado_em", { ascending: true }),
   ])
 
@@ -38,7 +34,6 @@ export default async function FinanceiroPage() {
   const evolucaoGrafico = Object.entries(porDia).map(([data, total]) => ({ data, total }))
 
   const totalModalidade = (caminhada ?? 0) + (corrida ?? 0)
-  const totalLote = (lote1 ?? 0) + (lote2 ?? 0)
 
   return (
     <div>
@@ -82,8 +77,8 @@ export default async function FinanceiroPage() {
         </div>
       </div>
 
-      {/* VISUAL: blocos-modalidade-lote */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      {/* VISUAL: bloco-modalidade */}
+      <div className="grid grid-cols-1 gap-4 mb-6">
         <div className="bg-white rounded-xl shadow-sm p-5">
           <p className="text-base font-semibold text-gray-800 mb-4">Por Modalidade</p>
           <div className="mb-4">
@@ -107,33 +102,6 @@ export default async function FinanceiroPage() {
               <div
                 className="bg-purple-600 rounded-full h-2"
                 style={{ width: totalModalidade ? `${((corrida ?? 0) / totalModalidade) * 100}%` : "0%" }}
-              />
-            </div>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <p className="text-base font-semibold text-gray-800 mb-4">Por Lote</p>
-          <div className="mb-4">
-            <div className="flex justify-between text-sm text-gray-600 mb-1">
-              <p>Lote 1 (R$25,00)</p>
-              <span>{lote1 ?? 0}</span>
-            </div>
-            <div className="bg-gray-100 rounded-full h-2">
-              <div
-                className="bg-purple-600 rounded-full h-2"
-                style={{ width: totalLote ? `${((lote1 ?? 0) / totalLote) * 100}%` : "0%" }}
-              />
-            </div>
-          </div>
-          <div>
-            <div className="flex justify-between text-sm text-gray-600 mb-1">
-              <p>Lote 2 (R$35,00)</p>
-              <span>{lote2 ?? 0}</span>
-            </div>
-            <div className="bg-gray-100 rounded-full h-2">
-              <div
-                className="bg-purple-400 rounded-full h-2"
-                style={{ width: totalLote ? `${((lote2 ?? 0) / totalLote) * 100}%` : "0%" }}
               />
             </div>
           </div>

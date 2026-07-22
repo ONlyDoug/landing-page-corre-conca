@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { createAuthClient } from "@/lib/supabase/auth-server"
 import { supabaseAdmin } from "@/lib/supabase/server"
+import { isStatusAguardando } from "@/lib/utils"
 
 export async function POST(request: Request) {
   const supabaseAuth = await createAuthClient()
@@ -53,12 +54,11 @@ export async function POST(request: Request) {
     })
   }
 
-  const alerta =
-    inscricao.status_pagamento === "pendente"
-      ? "pagamento_pendente"
-      : inscricao.status_pagamento === "cancelado"
-        ? "pagamento_cancelado"
-        : null
+  const alerta = isStatusAguardando(inscricao.status_pagamento)
+    ? "pagamento_pendente"
+    : inscricao.status_pagamento === "cancelado"
+      ? "pagamento_cancelado"
+      : null
 
   const checkinEm = new Date().toISOString()
   const { error: erroUpdate } = await supabaseAdmin

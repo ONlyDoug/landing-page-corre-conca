@@ -67,7 +67,7 @@ export default function CountdownTimer() {
 
     const atualizar = () => {
       const now = new Date()
-      const { target, label: novoLabel } = getCountdownTarget(now)
+      const { target, label: novoLabel } = getCountdownTarget()
       setLabel(novoLabel)
       setTempoRestante(calcularTempoRestante(target, now))
     }

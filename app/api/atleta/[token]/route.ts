@@ -8,7 +8,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ tok
   const { data: inscricao, error } = await supabaseAdmin
     .from("inscricoes")
     .select(
-      "nome, modalidade, lote, valor_pago, status_pagamento, presenca_confirmada, criado_em, tamanho_camisa, cidade, checkout_url"
+      "nome, modalidade, numero_bib, valor_pago, status_pagamento, presenca_confirmada, criado_em, tamanho_camisa, cidade, checkout_url"
     )
     .eq("qr_code_token", token)
     .maybeSingle()

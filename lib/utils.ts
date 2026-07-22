@@ -1,22 +1,24 @@
-import { VIRADA_LOTE, DATA_EVENTO_ISO, LOTES, type LoteInfo } from './constants'
+import { DATA_EVENTO_ISO } from './constants'
 
-export type LoteStatus = 'ativo' | 'em_breve' | 'encerrado'
-
-export function getLoteStatus(numero: 1 | 2, now: Date): LoteStatus {
-  const virada = new Date(VIRADA_LOTE)
-  if (numero === 1) return now <= virada ? 'ativo' : 'encerrado'
-  return now <= virada ? 'em_breve' : 'ativo'
-}
-
-export function getCountdownTarget(now: Date): { target: Date; label: string } {
-  const virada = new Date(VIRADA_LOTE)
-  if (now < virada) return { target: virada, label: 'Virada de lote em:' }
+export function getCountdownTarget(): { target: Date; label: string } {
   return { target: new Date(DATA_EVENTO_ISO), label: 'O evento começa em:' }
 }
 
-/** Lote vigente no momento informado — nunca confiar em lote/valor enviados pelo cliente. */
-export function getLoteAtivo(now: Date = new Date()): LoteInfo {
-  return LOTES.find((lote) => getLoteStatus(lote.numero, now) === 'ativo') ?? LOTES[LOTES.length - 1]
+/** 'pendente' é o valor legado (pré-Fase 11) equivalente a 'aguardando_pagamento' — nunca gravar 'pendente' em registros novos. */
+export function isStatusAguardando(status: string | null | undefined): boolean {
+  return status === 'pendente' || status === 'aguardando_pagamento'
+}
+
+export function statusPagamentoLabel(status: string): string {
+  if (status === 'confirmado') return 'Confirmado'
+  if (status === 'cancelado') return 'Cancelado'
+  return 'Aguardando pagamento'
+}
+
+export function statusPagamentoBadgeClasses(status: string): string {
+  if (status === 'confirmado') return 'bg-green-100 text-green-800'
+  if (status === 'cancelado') return 'bg-red-100 text-red-800'
+  return 'bg-yellow-100 text-yellow-800'
 }
 
 export function maskCPF(value: string): string {

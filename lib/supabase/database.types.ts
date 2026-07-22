@@ -14,9 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      bibs: {
+        Row: {
+          inscricao_id: string | null
+          numero: number
+          reservado_em: string | null
+        }
+        Insert: {
+          inscricao_id?: string | null
+          numero: number
+          reservado_em?: string | null
+        }
+        Update: {
+          inscricao_id?: string | null
+          numero?: number
+          reservado_em?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bibs_inscricao_id_fkey"
+            columns: ["inscricao_id"]
+            isOneToOne: false
+            referencedRelation: "inscricoes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       inscricoes: {
         Row: {
           atualizado_em: string | null
+          bib_escolhido_em: string | null
           checkin_em: string | null
           checkout_url: string | null
           cidade: string
@@ -24,18 +51,22 @@ export type Database = {
           criado_em: string | null
           data_nascimento: string
           id: string
+          invoice_slug: string | null
           lote: number
           modalidade: string
           nome: string
+          numero_bib: number | null
           presenca_confirmada: boolean | null
           qr_code_token: string | null
           status_pagamento: string
           tamanho_camisa: string
           telefone: string
+          transaction_nsu: string | null
           valor_pago: number
         }
         Insert: {
           atualizado_em?: string | null
+          bib_escolhido_em?: string | null
           checkin_em?: string | null
           checkout_url?: string | null
           cidade: string
@@ -43,18 +74,22 @@ export type Database = {
           criado_em?: string | null
           data_nascimento: string
           id?: string
+          invoice_slug?: string | null
           lote: number
           modalidade: string
           nome: string
+          numero_bib?: number | null
           presenca_confirmada?: boolean | null
           qr_code_token?: string | null
           status_pagamento?: string
           tamanho_camisa: string
           telefone: string
+          transaction_nsu?: string | null
           valor_pago: number
         }
         Update: {
           atualizado_em?: string | null
+          bib_escolhido_em?: string | null
           checkin_em?: string | null
           checkout_url?: string | null
           cidade?: string
@@ -62,14 +97,17 @@ export type Database = {
           criado_em?: string | null
           data_nascimento?: string
           id?: string
+          invoice_slug?: string | null
           lote?: number
           modalidade?: string
           nome?: string
+          numero_bib?: number | null
           presenca_confirmada?: boolean | null
           qr_code_token?: string | null
           status_pagamento?: string
           tamanho_camisa?: string
           telefone?: string
+          transaction_nsu?: string | null
           valor_pago?: number
         }
         Relationships: []

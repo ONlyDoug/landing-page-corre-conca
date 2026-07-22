@@ -72,7 +72,7 @@ export default function Hero() {
             Corre Conça
           </h1>
           <p className="text-xl font-medium text-white/90 md:text-2xl">
-            Corrida Solidária
+            {EVENTO.edicao}
           </p>
         </div>
 

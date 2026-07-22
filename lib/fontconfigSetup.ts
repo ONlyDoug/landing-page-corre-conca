@@ -45,5 +45,6 @@ export function configurarFontconfig(): void {
   process.env.FONTCONFIG_PATH = confDir
 
   console.log(`[fontconfig] sharp.versions=${JSON.stringify(sharp.versions)}`)
+  console.log(`[fontconfig] require.resolve('sharp')=${require.resolve('sharp')}`)
   configurado = true
 }

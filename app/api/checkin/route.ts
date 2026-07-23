@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
   const { data: inscricao, error: erroBusca } = await supabaseAdmin
     .from("inscricoes")
-    .select("id, nome, modalidade, status_pagamento, tamanho_camisa, presenca_confirmada, checkin_em")
+    .select("id, nome, modalidade, status_pagamento, tamanho_camisa, numero_bib, presenca_confirmada, checkin_em")
     .eq("qr_code_token", token)
     .maybeSingle()
 
@@ -50,6 +50,7 @@ export async function POST(request: Request) {
         nome: inscricao.nome,
         modalidade: inscricao.modalidade,
         status_pagamento: inscricao.status_pagamento,
+        numero_bib: inscricao.numero_bib,
       },
     })
   }
@@ -78,6 +79,7 @@ export async function POST(request: Request) {
       modalidade: inscricao.modalidade,
       status_pagamento: inscricao.status_pagamento,
       tamanho_camisa: inscricao.tamanho_camisa,
+      numero_bib: inscricao.numero_bib,
       checkin_em: checkinEm,
     },
   })

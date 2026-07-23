@@ -78,3 +78,6 @@ export const SITE_URL = 'https://www.correconca.com'
 // URL efetivamente usada no payload enviado à InfinitePay (WEBHOOK_URL_PRODUCAO acima é só documentação/legado)
 export const WEBHOOK_URL = `${SITE_URL}/api/webhook/infinitepay`
 export const LOCALSTORAGE_QR_TOKEN_KEY = 'correconca:qrCodeToken'
+
+// Fase 11 — tabela `bibs` tem números fixos de 0 a 500
+export const TOTAL_BIBS = 501

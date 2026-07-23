@@ -1,128 +1,198 @@
 import { supabaseAdmin } from "@/lib/supabase/server"
-import { Users, CheckCircle, Hash, HelpCircle } from "lucide-react"
-import { statusPagamentoLabel, statusPagamentoBadgeClasses } from "@/lib/utils"
-
-function modalidadeLabel(modalidade: string) {
-  return modalidade === "caminhada_3km" ? "Caminhada 3KM" : "Corrida 6KM"
-}
+import { Users, DollarSign, Hash, CheckCircle } from "lucide-react"
+import { modalidadeLabel, formatBRL, statusPagamentoLabel, statusPagamentoBadgeClasses } from "@/lib/utils"
+import { TOTAL_BIBS } from "@/lib/constants"
 
 export default async function DashboardPage() {
   const [
-    { count: total },
-    { count: confirmados },
-    { count: comBib },
-    { count: semBib },
-    { data: ultimas },
+    { data: confirmadosDados },
+    { count: bibsEscolhidos },
+    { count: checkinsFeitos },
+    { data: ultimasInscricoes },
+    { data: ultimosCheckins },
   ] = await Promise.all([
-    supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }),
+    supabaseAdmin.from("inscricoes").select("valor_pago, modalidade").eq("status_pagamento", "confirmado"),
+    supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).not("numero_bib", "is", null),
+    supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).eq("presenca_confirmada", true),
     supabaseAdmin
       .from("inscricoes")
-      .select("*", { count: "exact", head: true })
-      .eq("status_pagamento", "confirmado"),
-    supabaseAdmin
-      .from("inscricoes")
-      .select("*", { count: "exact", head: true })
-      .not("numero_bib", "is", null),
-    supabaseAdmin
-      .from("inscricoes")
-      .select("*", { count: "exact", head: true })
-      .is("numero_bib", null),
-    supabaseAdmin
-      .from("inscricoes")
-      .select("nome, modalidade, status_pagamento, criado_em")
+      .select("nome, modalidade, numero_bib, status_pagamento, criado_em")
       .order("criado_em", { ascending: false })
+      .limit(10),
+    supabaseAdmin
+      .from("inscricoes")
+      .select("nome, modalidade, numero_bib, checkin_em")
+      .eq("presenca_confirmada", true)
+      .order("checkin_em", { ascending: false })
       .limit(10),
   ])
 
+  const confirmados = confirmadosDados?.length ?? 0
+  const arrecadado = (confirmadosDados ?? []).reduce((soma, r) => soma + Number(r.valor_pago), 0)
+  const caminhadaCount = (confirmadosDados ?? []).filter((r) => r.modalidade === "caminhada_3km").length
+  const corridaCount = (confirmadosDados ?? []).filter((r) => r.modalidade === "corrida_6km").length
+
+  const bibsEscolhidosSeguro = bibsEscolhidos ?? 0
+  const checkinsFeitosSeguro = checkinsFeitos ?? 0
+  const bibsDisponiveis = TOTAL_BIBS - bibsEscolhidosSeguro
+  const pctBibsDisponiveis = Math.round((bibsDisponiveis / TOTAL_BIBS) * 100)
+  const pctBibsEscolhidos = confirmados > 0 ? Math.round((bibsEscolhidosSeguro / confirmados) * 100) : 0
+  const pctCheckins = confirmados > 0 ? Math.round((checkinsFeitosSeguro / confirmados) * 100) : 0
+  const maiorModalidade = Math.max(caminhadaCount, corridaCount, 1)
+
   return (
     <div>
-      {/* VISUAL: cards-resumo */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {/* VISUAL: card-total */}
+      {/* Linha 1 — cards principais */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
           <div className="bg-purple-50 rounded-lg p-2.5 text-roxo">
             <Users />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-800">{total ?? 0}</p>
-            <p className="text-sm text-gray-500">Total Inscritos</p>
-          </div>
-        </div>
-
-        {/* VISUAL: card-confirmados */}
-        <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-          <div className="bg-green-50 rounded-lg p-2.5 text-green-600">
-            <CheckCircle />
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-gray-800">{confirmados ?? 0}</p>
+            <p className="text-2xl font-bold text-gray-800">{confirmados}</p>
             <p className="text-sm text-gray-500">Confirmados</p>
           </div>
         </div>
 
-        {/* VISUAL: card-com-bib */}
         <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-          <div className="bg-purple-50 rounded-lg p-2.5 text-roxo">
-            <Hash />
+          <div className="bg-green-50 rounded-lg p-2.5 text-green-600">
+            <DollarSign />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-800">{comBib ?? 0}</p>
-            <p className="text-sm text-gray-500">Com Bib</p>
+            <p className="text-2xl font-bold text-gray-800">{formatBRL(arrecadado)}</p>
+            <p className="text-sm text-gray-500">Arrecadado</p>
           </div>
         </div>
 
-        {/* VISUAL: card-sem-bib */}
         <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
-          <div className="bg-gray-100 rounded-lg p-2.5 text-gray-500">
-            <HelpCircle />
+          <div className="bg-blue-50 rounded-lg p-2.5 text-blue-600">
+            <Hash />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-800">{semBib ?? 0}</p>
-            <p className="text-sm text-gray-500">Sem Bib</p>
+            <p className="text-2xl font-bold text-gray-800">
+              {bibsEscolhidosSeguro}/{confirmados}
+            </p>
+            <p className="text-sm text-gray-500">Bibs Escolhidos</p>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-5 flex items-center gap-4">
+          <div className="bg-emerald-50 rounded-lg p-2.5 text-emerald-600">
+            <CheckCircle />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-800">
+              {checkinsFeitosSeguro}/{confirmados}
+            </p>
+            <p className="text-sm text-gray-500">Check-ins</p>
           </div>
         </div>
       </div>
 
-      {/* VISUAL: tabela-ultimas-inscricoes */}
-      <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-        <p className="text-base font-semibold text-gray-800 p-5 border-b border-gray-100">Últimas Inscrições</p>
+      {/* Linha 2 — bibs, progresso, modalidade */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <p className="text-sm font-semibold text-gray-800 mb-3">Bibs Disponíveis</p>
+          <p className="text-2xl font-bold text-gray-800 mb-1">
+            {bibsDisponiveis} <span className="text-sm font-normal text-gray-400">de {TOTAL_BIBS}</span>
+          </p>
+          <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
+            <div className="bg-roxo h-3 rounded-full" style={{ width: `${pctBibsDisponiveis}%` }} />
+          </div>
+          <p className="text-sm text-gray-500 mt-2">{bibsDisponiveis} números disponíveis</p>
+        </div>
 
-        <table className="w-full">
-          <thead>
-            <tr>
-              <th className="text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3 text-left bg-gray-50">
-                Nome
-              </th>
-              <th className="text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3 text-left bg-gray-50">
-                Modalidade
-              </th>
-              <th className="text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3 text-left bg-gray-50">
-                Status
-              </th>
-              <th className="text-xs font-medium text-gray-500 uppercase tracking-wide px-5 py-3 text-left bg-gray-50">
-                Data
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {(ultimas ?? []).map((row, index) => (
-              // VISUAL: linha-tabela
-              <tr key={`${row.nome}-${index}`} className="border-t border-gray-100 hover:bg-gray-50">
-                <td className="px-5 py-3.5 text-sm text-gray-700">{row.nome}</td>
-                <td className="px-5 py-3.5 text-sm text-gray-700">{modalidadeLabel(row.modalidade)}</td>
-                <td className="px-5 py-3.5 text-sm text-gray-700">
-                  {/* VISUAL: status-badge */}
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <p className="text-sm font-semibold text-gray-800 mb-3">Progresso de Preparação</p>
+          <div className="mb-3">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Bibs escolhidos</span>
+              <span>{pctBibsEscolhidos}%</span>
+            </div>
+            <div className="bg-gray-100 rounded-full h-2.5 overflow-hidden">
+              <div className="bg-roxo h-2.5 rounded-full" style={{ width: `${pctBibsEscolhidos}%` }} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>Check-ins feitos</span>
+              <span>{pctCheckins}%</span>
+            </div>
+            <div className="bg-gray-100 rounded-full h-2.5 overflow-hidden">
+              <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${pctCheckins}%` }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <p className="text-sm font-semibold text-gray-800 mb-3">Por Modalidade</p>
+          <div className="mb-3">
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>{modalidadeLabel("caminhada_3km")}</span>
+              <span>{caminhadaCount}</span>
+            </div>
+            <div className="bg-gray-100 rounded-full h-2.5 overflow-hidden">
+              <div className="bg-blue-500 h-2.5 rounded-full" style={{ width: `${(caminhadaCount / maiorModalidade) * 100}%` }} />
+            </div>
+          </div>
+          <div>
+            <div className="flex justify-between text-xs text-gray-500 mb-1">
+              <span>{modalidadeLabel("corrida_6km")}</span>
+              <span>{corridaCount}</span>
+            </div>
+            <div className="bg-gray-100 rounded-full h-2.5 overflow-hidden">
+              <div className="bg-roxo h-2.5 rounded-full" style={{ width: `${(corridaCount / maiorModalidade) * 100}%` }} />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Linha 3 — últimas inscrições e check-ins */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <p className="text-sm font-semibold text-gray-800 mb-2">Últimas Inscrições</p>
+          {(ultimasInscricoes ?? []).length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-4">Nenhuma inscrição ainda</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {(ultimasInscricoes ?? []).map((row, index) => (
+                <div key={`${row.nome}-${index}`} className="py-2.5 flex items-center justify-between text-sm">
+                  <div>
+                    <p className="text-gray-800">{row.nome}</p>
+                    <p className="text-xs text-gray-400">
+                      {modalidadeLabel(row.modalidade)}
+                      {row.numero_bib !== null ? ` · Nº ${row.numero_bib}` : ""}
+                    </p>
+                  </div>
                   <span className={`text-xs font-medium px-2.5 py-0.5 rounded-full ${statusPagamentoBadgeClasses(row.status_pagamento)}`}>
                     {statusPagamentoLabel(row.status_pagamento)}
                   </span>
-                </td>
-                <td className="px-5 py-3.5 text-sm text-gray-700">
-                  {row.criado_em ? new Date(row.criado_em).toLocaleDateString("pt-BR") : "-"}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-xl shadow-sm p-5">
+          <p className="text-sm font-semibold text-gray-800 mb-2">Últimos Check-ins</p>
+          {(ultimosCheckins ?? []).length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-4">Nenhum check-in ainda</p>
+          ) : (
+            <div className="divide-y divide-gray-100">
+              {(ultimosCheckins ?? []).map((row, index) => (
+                <div key={`${row.nome}-${index}`} className="py-2.5 flex items-center justify-between text-sm">
+                  <div>
+                    <p className="text-gray-800">{row.nome}</p>
+                    <p className="text-xs text-gray-400">{row.numero_bib !== null ? `Nº ${row.numero_bib}` : ""}</p>
+                  </div>
+                  <span className="text-xs text-gray-500">
+                    {row.checkin_em ? new Date(row.checkin_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "-"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

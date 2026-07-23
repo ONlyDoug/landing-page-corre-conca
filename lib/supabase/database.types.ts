@@ -40,11 +40,60 @@ export type Database = {
           },
         ]
       }
+      checkouts_pendentes: {
+        Row: {
+          checkout_url: string | null
+          cidade: string
+          cpf: string
+          criado_em: string
+          data_nascimento: string
+          id: string
+          lote: number
+          modalidade: string
+          nome: string
+          qr_code_token: string
+          tamanho_camisa: string
+          telefone: string
+          valor_pago: number
+        }
+        Insert: {
+          checkout_url?: string | null
+          cidade: string
+          cpf: string
+          criado_em?: string
+          data_nascimento: string
+          id?: string
+          lote: number
+          modalidade: string
+          nome: string
+          qr_code_token?: string
+          tamanho_camisa: string
+          telefone: string
+          valor_pago: number
+        }
+        Update: {
+          checkout_url?: string | null
+          cidade?: string
+          cpf?: string
+          criado_em?: string
+          data_nascimento?: string
+          id?: string
+          lote?: number
+          modalidade?: string
+          nome?: string
+          qr_code_token?: string
+          tamanho_camisa?: string
+          telefone?: string
+          valor_pago?: number
+        }
+        Relationships: []
+      }
       inscricoes: {
         Row: {
           atualizado_em: string | null
           bib_escolhido_em: string | null
           checkin_em: string | null
+          checkout_origem_id: string | null
           checkout_url: string | null
           cidade: string
           cpf: string
@@ -68,6 +117,7 @@ export type Database = {
           atualizado_em?: string | null
           bib_escolhido_em?: string | null
           checkin_em?: string | null
+          checkout_origem_id?: string | null
           checkout_url?: string | null
           cidade: string
           cpf: string
@@ -91,6 +141,7 @@ export type Database = {
           atualizado_em?: string | null
           bib_escolhido_em?: string | null
           checkin_em?: string | null
+          checkout_origem_id?: string | null
           checkout_url?: string | null
           cidade?: string
           cpf?: string

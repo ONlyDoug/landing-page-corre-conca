@@ -24,21 +24,38 @@ type InscricaoExistente = {
   statusPagamento: string
 }
 
-/** Busca inscrição existente por CPF; retorna null tanto se não encontrar quanto se a busca falhar. */
+/**
+ * Busca inscrição existente por CPF; retorna null tanto se não encontrar quanto se a busca falhar.
+ * Checa primeiro `inscricoes` (pagamento já confirmado/cancelado) e depois `checkouts_pendentes`
+ * (checkout em andamento) — isso preserva o comportamento de reaproveitar o mesmo link de checkout
+ * se a pessoa reenviar o formulário antes de terminar de pagar, em vez de gerar um segundo link.
+ */
 async function buscarInscricaoPorCpf(cpfLimpo: string): Promise<InscricaoExistente | null> {
-  const { data, error } = await supabaseAdmin
+  const { data: real, error: erroReal } = await supabaseAdmin
     .from("inscricoes")
     .select("qr_code_token, status_pagamento")
     .eq("cpf", cpfLimpo)
     .maybeSingle()
 
-  if (error) {
-    console.error("[inscricao] falha ao verificar CPF existente:", error)
+  if (erroReal) {
+    console.error("[inscricao] falha ao verificar CPF existente:", erroReal)
     return null
   }
-  if (!data) return null
+  if (real) return { qrCodeToken: real.qr_code_token, statusPagamento: real.status_pagamento }
 
-  return { qrCodeToken: data.qr_code_token, statusPagamento: data.status_pagamento }
+  const { data: pendente, error: erroPendente } = await supabaseAdmin
+    .from("checkouts_pendentes")
+    .select("qr_code_token")
+    .eq("cpf", cpfLimpo)
+    .maybeSingle()
+
+  if (erroPendente) {
+    console.error("[inscricao] falha ao verificar checkout pendente por CPF:", erroPendente)
+    return null
+  }
+  if (!pendente) return null
+
+  return { qrCodeToken: pendente.qr_code_token, statusPagamento: "aguardando_pagamento" }
 }
 
 function respostaJaInscrito(inscricaoExistente: InscricaoExistente) {
@@ -55,7 +72,7 @@ function respostaJaInscrito(inscricaoExistente: InscricaoExistente) {
 
 /** Gera o link de checkout dinâmico na InfinitePay; nunca lança — falhas caem no fallback estático. */
 async function gerarCheckoutDinamico(params: {
-  inscricaoId: string
+  checkoutId: string
   qrCodeToken: string
   nome: string
   telefone: string
@@ -64,7 +81,7 @@ async function gerarCheckoutDinamico(params: {
 }): Promise<string> {
   const payload = {
     handle: INFINITEPAY_HANDLE,
-    order_nsu: params.inscricaoId,
+    order_nsu: params.checkoutId,
     redirect_url: `${SITE_URL}/acompanhar/${params.qrCodeToken}`,
     webhook_url: WEBHOOK_URL,
     items: [
@@ -146,7 +163,7 @@ export async function POST(request: Request) {
   }
 
   const { data, error } = await supabaseAdmin
-    .from("inscricoes")
+    .from("checkouts_pendentes")
     .insert({
       nome: parsed.data.nome,
       cpf: cpfLimpo,
@@ -157,7 +174,6 @@ export async function POST(request: Request) {
       modalidade: parsed.data.modalidade,
       lote: 1,
       valor_pago: VALOR_INSCRICAO,
-      status_pagamento: "aguardando_pagamento",
     })
     .select("id, qr_code_token")
     .single()
@@ -183,9 +199,9 @@ export async function POST(request: Request) {
     )
   }
 
-  // A inscrição já foi gravada com sucesso — nada a partir daqui pode virar erro 5xx.
+  // O checkout já foi gravado com sucesso — nada a partir daqui pode virar erro 5xx.
   const checkoutUrl = await gerarCheckoutDinamico({
-    inscricaoId: data.id,
+    checkoutId: data.id,
     qrCodeToken: data.qr_code_token ?? "",
     nome: parsed.data.nome,
     telefone: parsed.data.telefone,
@@ -195,7 +211,7 @@ export async function POST(request: Request) {
 
   if (checkoutUrl !== LINK_INFINITEPAY) {
     const { error: erroUpdateCheckout } = await supabaseAdmin
-      .from("inscricoes")
+      .from("checkouts_pendentes")
       .update({ checkout_url: checkoutUrl })
       .eq("id", data.id)
 

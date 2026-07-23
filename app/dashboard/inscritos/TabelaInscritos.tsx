@@ -1,6 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Loader2, CheckCircle } from "lucide-react"
 import {
   mascararCPF,
@@ -23,6 +24,8 @@ export interface InscricaoRow {
   presenca_confirmada: boolean | null
   criado_em: string | null
   qr_code_token: string | null
+  /** "inscricao": pagamento já confirmado/cancelado. "checkout_pendente": ainda em checkouts_pendentes. */
+  origem: "inscricao" | "checkout_pendente"
 }
 
 interface TabelaInscritosProps {
@@ -30,6 +33,7 @@ interface TabelaInscritosProps {
 }
 
 export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
+  const router = useRouter()
   const [filtroStatus, setFiltroStatus] = useState<string>("todos")
   const [filtroModalidade, setFiltroModalidade] = useState<string>("todos")
   const [filtroPresenca, setFiltroPresenca] = useState<string>("todos")
@@ -73,9 +77,24 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
   const algunsPendentesSelecionados =
     pendentesFiltrados.some((i) => selecionados.has(i.id)) && !todosPendentesSelecionados
 
-  const confirmarPagamento = async (id: string, novoStatus: "confirmado" | "cancelado") => {
+  const confirmarPagamento = async (
+    id: string,
+    novoStatus: "confirmado" | "cancelado",
+    origem: InscricaoRow["origem"]
+  ) => {
     setLoading((prev) => ({ ...prev, [id]: true }))
     try {
+      if (origem === "checkout_pendente") {
+        // Confirmar/cancelar um checkout pendente cria/registra uma inscrição com um id novo —
+        // não dá pra atualizar a linha local in-place, então recarrega os dados do servidor.
+        const acao = novoStatus === "confirmado" ? "confirmar" : "cancelar"
+        const res = await fetch(`/api/admin/checkouts-pendentes/${id}/${acao}`, { method: "POST" })
+        if (res.ok) {
+          router.refresh()
+        }
+        return
+      }
+
       const res = await fetch(`/api/inscricao/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -119,21 +138,50 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
     if (selecionados.size === 0) return
     setLoadingLote(true)
     try {
-      const res = await fetch("/api/admin/confirmar-lote", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selecionados) }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setDados((prev) =>
-          prev.map((i) =>
-            selecionados.has(i.id) ? { ...i, status_pagamento: "confirmado" as const } : i
+      const mapaOrigem = new Map(dados.map((i) => [i.id, i.origem]))
+      const selecionadosArr = Array.from(selecionados)
+      const idsStaging = selecionadosArr.filter((id) => mapaOrigem.get(id) === "checkout_pendente")
+      const idsLegado = selecionadosArr.filter((id) => mapaOrigem.get(id) === "inscricao")
+
+      let confirmados = 0
+
+      if (idsStaging.length > 0) {
+        const res = await fetch("/api/admin/confirmar-lote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ids: idsStaging }),
+        })
+        if (res.ok) {
+          const data = await res.json()
+          confirmados += data.atualizados
+        }
+      }
+
+      if (idsLegado.length > 0) {
+        const resultados = await Promise.all(
+          idsLegado.map((id) =>
+            fetch(`/api/inscricao/${id}/status`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ status: "confirmado" }),
+            })
           )
         )
-        setResultadoLote(`${data.atualizados} pagamentos confirmados`)
-        setSelecionados(new Set())
-        setTimeout(() => setResultadoLote(null), 4000)
+        const idsLegadoConfirmados = idsLegado.filter((_, index) => resultados[index].ok)
+        confirmados += idsLegadoConfirmados.length
+        setDados((prev) =>
+          prev.map((i) =>
+            idsLegadoConfirmados.includes(i.id) ? { ...i, status_pagamento: "confirmado" as const } : i
+          )
+        )
+      }
+
+      setResultadoLote(`${confirmados} pagamentos confirmados`)
+      setSelecionados(new Set())
+      setTimeout(() => setResultadoLote(null), 4000)
+
+      if (idsStaging.length > 0) {
+        router.refresh()
       }
     } finally {
       setLoadingLote(false)
@@ -297,7 +345,7 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
                   <div className="flex gap-2">
                     {row.status_pagamento !== "confirmado" && (
                       <button
-                        onClick={() => confirmarPagamento(row.id, "confirmado")}
+                        onClick={() => confirmarPagamento(row.id, "confirmado", row.origem)}
                         disabled={loading[row.id]}
                         className="bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white text-xs px-3 py-1.5 rounded-lg"
                       >
@@ -306,7 +354,7 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
                     )}
                     {row.status_pagamento !== "cancelado" && (
                       <button
-                        onClick={() => confirmarPagamento(row.id, "cancelado")}
+                        onClick={() => confirmarPagamento(row.id, "cancelado", row.origem)}
                         disabled={loading[row.id]}
                         className="bg-red-100 hover:bg-red-200 disabled:opacity-50 text-red-700 text-xs px-3 py-1.5 rounded-lg"
                       >

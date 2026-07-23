@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { createAuthClient } from "@/lib/supabase/auth-server"
-import { supabaseAdmin } from "@/lib/supabase/server"
+import { finalizarCheckout } from "@/lib/confirmacaoCheckout"
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 const MAX_IDS = 100
@@ -44,20 +44,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "ids_invalido" }, { status: 400 })
   }
 
-  const { data, error } = await supabaseAdmin
-    .from("inscricoes")
-    .update({ status_pagamento: "confirmado" })
-    .in("id", idsValidos)
-    .in("status_pagamento", ["pendente", "aguardando_pagamento"])
-    .select("id, nome, status_pagamento")
-
-  if (error) {
-    console.error("[confirmar-lote] Erro ao atualizar em lote:", error)
-    return NextResponse.json({ error: "erro_ao_atualizar" }, { status: 500 })
+  // `idsValidos` são ids de `checkouts_pendentes` — cada um precisa do próprio DELETE+INSERT via
+  // finalizarCheckout, não dá mais pra confirmar em um único UPDATE em massa.
+  const idsAtualizados: string[] = []
+  for (const id of idsValidos) {
+    try {
+      const resultado = await finalizarCheckout({ checkoutId: id, statusFinal: "confirmado", forcar: true })
+      if (resultado.status === "confirmado") {
+        idsAtualizados.push(resultado.inscricaoId)
+      } else {
+        console.error(`[confirmar-lote] falha ao confirmar checkout ${id}:`, resultado)
+      }
+    } catch (err) {
+      console.error(`[confirmar-lote] erro inesperado ao confirmar checkout ${id}:`, err)
+    }
   }
 
   return NextResponse.json({
-    atualizados: data.length,
-    ids_atualizados: data.map((inscricao) => inscricao.id),
+    atualizados: idsAtualizados.length,
+    ids_atualizados: idsAtualizados,
   })
 }

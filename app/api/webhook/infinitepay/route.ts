@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { supabaseAdmin } from "@/lib/supabase/server"
+import { finalizarCheckout } from "@/lib/confirmacaoCheckout"
 import type { Json } from "@/lib/supabase/database.types"
 
 type InfinitePayWebhookPayload = {
@@ -62,44 +63,75 @@ export async function POST(request: Request) {
 
   const orderNsu = campos.order_nsu
   if (orderNsu && UUID_REGEX.test(orderNsu)) {
-    const { data: inscricao, error: erroBuscaInscricao } = await supabaseAdmin
-      .from("inscricoes")
-      .select("id, valor_pago")
-      .eq("id", orderNsu)
-      .maybeSingle()
+    const resultado = await finalizarCheckout({
+      checkoutId: orderNsu,
+      statusFinal: "confirmado",
+      valorRecebidoCentavos: campos.paid_amount,
+      transactionNsu: campos.transaction_nsu,
+      invoiceSlug: campos.invoice_slug,
+    })
 
-    if (erroBuscaInscricao) {
-      console.error("[webhook/infinitepay] falha ao buscar inscricao", erroBuscaInscricao)
-    } else if (inscricao) {
-      if (pagamentoInserido) {
-        const { error: erroUpdatePagamento } = await supabaseAdmin
-          .from("pagamentos")
-          .update({ inscricao_id: orderNsu })
-          .eq("id", pagamentoInserido.id)
+    if (resultado.status === "confirmado" && pagamentoInserido) {
+      const { error: erroUpdatePagamento } = await supabaseAdmin
+        .from("pagamentos")
+        .update({ inscricao_id: resultado.inscricaoId })
+        .eq("id", pagamentoInserido.id)
 
-        if (erroUpdatePagamento) {
-          console.error("[webhook/infinitepay] falha ao vincular pagamento à inscricao", erroUpdatePagamento)
-        }
+      if (erroUpdatePagamento) {
+        console.error("[webhook/infinitepay] falha ao vincular pagamento à inscricao", erroUpdatePagamento)
       }
+    } else if (resultado.status === "valor_insuficiente") {
+      console.error(
+        `[webhook/infinitepay] valor recebido não cobre o valor esperado do checkout ${orderNsu} — pagamento registrado, mas não confirmado automaticamente`
+      )
+    } else if (resultado.status === "erro") {
+      console.error("[webhook/infinitepay] falha ao finalizar checkout", resultado.erro)
+    } else if (resultado.status === "nao_encontrado") {
+      // Fallback de compatibilidade: cobre checkouts iniciados antes da migração para
+      // checkouts_pendentes, cuja linha ainda existe em `inscricoes` no estado antigo.
+      const { data: inscricaoLegada, error: erroBuscaLegada } = await supabaseAdmin
+        .from("inscricoes")
+        .select("id, valor_pago")
+        .eq("id", orderNsu)
+        .maybeSingle()
 
-      const valorRecebido = campos.paid_amount != null ? campos.paid_amount / 100 : null
-      if (valorRecebido != null && valorRecebido >= inscricao.valor_pago) {
-        const { error: erroUpdateInscricao } = await supabaseAdmin
-          .from("inscricoes")
-          .update({
-            status_pagamento: "confirmado",
-            transaction_nsu: campos.transaction_nsu ?? null,
-            invoice_slug: campos.invoice_slug ?? null,
-          })
-          .eq("id", orderNsu)
-          .in("status_pagamento", ["pendente", "aguardando_pagamento"])
+      if (erroBuscaLegada) {
+        console.error("[webhook/infinitepay] falha ao buscar inscricao legada", erroBuscaLegada)
+      } else if (inscricaoLegada) {
+        if (pagamentoInserido) {
+          const { error: erroUpdatePagamento } = await supabaseAdmin
+            .from("pagamentos")
+            .update({ inscricao_id: orderNsu })
+            .eq("id", pagamentoInserido.id)
 
-        if (erroUpdateInscricao) {
-          console.error("[webhook/infinitepay] falha ao confirmar pagamento da inscricao", erroUpdateInscricao)
+          if (erroUpdatePagamento) {
+            console.error("[webhook/infinitepay] falha ao vincular pagamento à inscricao legada", erroUpdatePagamento)
+          }
+        }
+
+        const valorRecebido = campos.paid_amount != null ? campos.paid_amount / 100 : null
+        if (valorRecebido != null && valorRecebido >= inscricaoLegada.valor_pago) {
+          const { error: erroUpdateInscricao } = await supabaseAdmin
+            .from("inscricoes")
+            .update({
+              status_pagamento: "confirmado",
+              transaction_nsu: campos.transaction_nsu ?? null,
+              invoice_slug: campos.invoice_slug ?? null,
+            })
+            .eq("id", orderNsu)
+            .in("status_pagamento", ["pendente", "aguardando_pagamento"])
+
+          if (erroUpdateInscricao) {
+            console.error("[webhook/infinitepay] falha ao confirmar pagamento da inscricao legada", erroUpdateInscricao)
+          }
+        } else {
+          console.error(
+            `[webhook/infinitepay] valor recebido (${String(valorRecebido)}) não cobre o valor esperado (${inscricaoLegada.valor_pago}) da inscricao legada ${orderNsu}`
+          )
         }
       } else {
-        console.error(
-          `[webhook/infinitepay] valor recebido (${String(valorRecebido)}) não cobre o valor esperado (${inscricao.valor_pago}) da inscricao ${orderNsu} — pagamento registrado, mas não confirmado automaticamente`
+        console.warn(
+          `[webhook/infinitepay] order_nsu ${orderNsu} não corresponde a nenhum checkout pendente nem inscrição legada`
         )
       }
     }

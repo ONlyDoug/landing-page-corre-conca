@@ -81,3 +81,6 @@ export const LOCALSTORAGE_QR_TOKEN_KEY = 'correconca:qrCodeToken'
 
 // Fase 11 — tabela `bibs` tem números fixos de 0 a 500
 export const TOTAL_BIBS = 501
+
+// Capacidade total do evento — denominador fixo dos cards do dashboard (Bibs Escolhidos, Check-ins)
+export const CAPACIDADE_TOTAL_VAGAS = 500

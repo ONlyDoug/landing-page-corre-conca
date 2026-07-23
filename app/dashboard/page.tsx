@@ -1,7 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabase/server"
 import { Users, DollarSign, Hash, CheckCircle } from "lucide-react"
 import { modalidadeLabel, formatBRL, statusPagamentoLabel, statusPagamentoBadgeClasses } from "@/lib/utils"
-import { TOTAL_BIBS } from "@/lib/constants"
+import { TOTAL_BIBS, CAPACIDADE_TOTAL_VAGAS } from "@/lib/constants"
 
 export default async function DashboardPage() {
   const [
@@ -10,21 +10,39 @@ export default async function DashboardPage() {
     { count: checkinsFeitos },
     { data: ultimasInscricoes },
     { data: ultimosCheckins },
+    { data: ultimosBibs },
   ] = await Promise.all([
     supabaseAdmin.from("inscricoes").select("valor_pago, modalidade").eq("status_pagamento", "confirmado"),
-    supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).not("numero_bib", "is", null),
-    supabaseAdmin.from("inscricoes").select("*", { count: "exact", head: true }).eq("presenca_confirmada", true),
+    supabaseAdmin
+      .from("inscricoes")
+      .select("*", { count: "exact", head: true })
+      .eq("status_pagamento", "confirmado")
+      .not("numero_bib", "is", null),
+    supabaseAdmin
+      .from("inscricoes")
+      .select("*", { count: "exact", head: true })
+      .eq("status_pagamento", "confirmado")
+      .eq("presenca_confirmada", true),
     supabaseAdmin
       .from("inscricoes")
       .select("nome, modalidade, numero_bib, status_pagamento, criado_em")
+      .eq("status_pagamento", "confirmado")
       .order("criado_em", { ascending: false })
       .limit(10),
     supabaseAdmin
       .from("inscricoes")
       .select("nome, modalidade, numero_bib, checkin_em")
+      .eq("status_pagamento", "confirmado")
       .eq("presenca_confirmada", true)
       .order("checkin_em", { ascending: false })
       .limit(10),
+    supabaseAdmin
+      .from("inscricoes")
+      .select("nome, numero_bib, modalidade, bib_escolhido_em")
+      .eq("status_pagamento", "confirmado")
+      .not("numero_bib", "is", null)
+      .order("bib_escolhido_em", { ascending: false })
+      .limit(5),
   ])
 
   const confirmados = confirmadosDados?.length ?? 0
@@ -36,8 +54,8 @@ export default async function DashboardPage() {
   const checkinsFeitosSeguro = checkinsFeitos ?? 0
   const bibsDisponiveis = TOTAL_BIBS - bibsEscolhidosSeguro
   const pctBibsDisponiveis = Math.round((bibsDisponiveis / TOTAL_BIBS) * 100)
-  const pctBibsEscolhidos = confirmados > 0 ? Math.round((bibsEscolhidosSeguro / confirmados) * 100) : 0
-  const pctCheckins = confirmados > 0 ? Math.round((checkinsFeitosSeguro / confirmados) * 100) : 0
+  const pctBibsEscolhidos = Math.round((bibsEscolhidosSeguro / CAPACIDADE_TOTAL_VAGAS) * 100)
+  const pctCheckins = Math.round((checkinsFeitosSeguro / CAPACIDADE_TOTAL_VAGAS) * 100)
   const maiorModalidade = Math.max(caminhadaCount, corridaCount, 1)
 
   return (
@@ -70,7 +88,7 @@ export default async function DashboardPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-800">
-              {bibsEscolhidosSeguro}/{confirmados}
+              {bibsEscolhidosSeguro}/{CAPACIDADE_TOTAL_VAGAS}
             </p>
             <p className="text-sm text-gray-500">Bibs Escolhidos</p>
           </div>
@@ -82,7 +100,7 @@ export default async function DashboardPage() {
           </div>
           <div>
             <p className="text-2xl font-bold text-gray-800">
-              {checkinsFeitosSeguro}/{confirmados}
+              {checkinsFeitosSeguro}/{CAPACIDADE_TOTAL_VAGAS}
             </p>
             <p className="text-sm text-gray-500">Check-ins</p>
           </div>
@@ -173,25 +191,49 @@ export default async function DashboardPage() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl shadow-sm p-5">
-          <p className="text-sm font-semibold text-gray-800 mb-2">Últimos Check-ins</p>
-          {(ultimosCheckins ?? []).length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-4">Nenhum check-in ainda</p>
-          ) : (
-            <div className="divide-y divide-gray-100">
-              {(ultimosCheckins ?? []).map((row, index) => (
-                <div key={`${row.nome}-${index}`} className="py-2.5 flex items-center justify-between text-sm">
-                  <div>
-                    <p className="text-gray-800">{row.nome}</p>
-                    <p className="text-xs text-gray-400">{row.numero_bib !== null ? `Nº ${row.numero_bib}` : ""}</p>
+        {/* VISUAL: ultimos-bibs */}
+        <div className="flex flex-col gap-4">
+          <div className="bg-white rounded-xl shadow-sm p-5">
+            <p className="text-sm font-semibold text-gray-800 mb-3">Últimos Bibs Gerados</p>
+            {(ultimosBibs ?? []).length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-4">Nenhum bib gerado ainda</p>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {(ultimosBibs ?? []).map((row, index) => (
+                  <div key={`${row.nome}-${index}`} className="py-2.5 flex items-center justify-between text-sm">
+                    <div>
+                      <p className="text-gray-700">{row.nome}</p>
+                      <p className="text-xs text-gray-400">{modalidadeLabel(row.modalidade)}</p>
+                    </div>
+                    <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                      Nº {row.numero_bib}
+                    </span>
                   </div>
-                  <span className="text-xs text-gray-500">
-                    {row.checkin_em ? new Date(row.checkin_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "-"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm p-5">
+            <p className="text-sm font-semibold text-gray-800 mb-2">Últimos Check-ins</p>
+            {(ultimosCheckins ?? []).length === 0 ? (
+              <p className="text-gray-400 text-sm text-center py-4">Nenhum check-in ainda</p>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {(ultimosCheckins ?? []).map((row, index) => (
+                  <div key={`${row.nome}-${index}`} className="py-2.5 flex items-center justify-between text-sm">
+                    <div>
+                      <p className="text-gray-800">{row.nome}</p>
+                      <p className="text-xs text-gray-400">{row.numero_bib !== null ? `Nº ${row.numero_bib}` : ""}</p>
+                    </div>
+                    <span className="text-xs text-gray-500">
+                      {row.checkin_em ? new Date(row.checkin_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) : "-"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

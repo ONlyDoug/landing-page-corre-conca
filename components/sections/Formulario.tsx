@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useForm, Controller } from "react-hook-form"
+import { useForm, Controller, type FieldErrors } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
@@ -22,20 +22,31 @@ type InscricaoResponse = {
 const CAMPO_BASE =
   "w-full rounded-lg border-2 bg-white px-4 py-3 text-base text-roxo-dark placeholder:text-gray-400 transition-colors focus:outline-none focus:ring-2 focus:ring-roxo/30"
 
-const mensagensErro: Record<keyof InscricaoFormData, string> = {
-  nome: "Digite seu nome completo (mínimo 2 palavras)",
-  cpf: "CPF inválido. Verifique os números e tente novamente",
-  cidade: "Digite o nome da sua cidade",
-  dataNascimento: "Data inválida. Use o formato DD/MM/AAAA",
-  telefone: "Telefone inválido. Digite com DDD (ex: 75 99999-9999)",
-  tamanhoCamisa: "Selecione o tamanho da camiseta",
-  modalidade: "Selecione a modalidade que deseja participar",
+const TEXTOS_AJUDA: Partial<Record<keyof InscricaoFormData, string>> = {
+  nome: "Nome e sobrenome, como no documento",
+  cpf: "Formato: 000.000.000-00",
+  dataNascimento: "Formato: DD/MM/AAAA",
+  telefone: "Formato: (00) 00000-0000, com DDD",
+}
+
+const CAMPOS_EM_ORDEM: (keyof InscricaoFormData)[] = [
+  "nome",
+  "cpf",
+  "dataNascimento",
+  "cidade",
+  "telefone",
+  "tamanhoCamisa",
+  "modalidade",
+]
+
+function idsDescricao(idAjuda: string | undefined, temErro: boolean, idErro: string): string | undefined {
+  return [idAjuda, temErro ? idErro : undefined].filter(Boolean).join(" ") || undefined
 }
 
 function bordaCampo(temErro: boolean, tocadoValido: boolean): string {
-  if (temErro) return "border-red-400 focus:ring-red-400 bg-red-50"
-  if (tocadoValido) return "border-green-400 focus:ring-green-400"
-  return "border-gray-200 focus:border-roxo"
+  if (temErro) return "border-red-400 bg-red-50 ring-1 ring-red-200 focus:ring-red-400"
+  if (tocadoValido) return "border-green-400 bg-white ring-1 ring-green-100 focus:ring-green-400"
+  return "border-gray-200 bg-white focus:border-roxo"
 }
 
 export default function Formulario() {
@@ -49,6 +60,7 @@ export default function Formulario() {
     register,
     control,
     handleSubmit,
+    setFocus,
     formState: { errors, touchedFields, isSubmitting },
   } = useForm<InscricaoFormData>({
     resolver: zodResolver(inscricaoSchema),
@@ -94,6 +106,13 @@ export default function Formulario() {
     }
   }
 
+  function onError(erros: FieldErrors<InscricaoFormData>) {
+    const primeiroCampo = CAMPOS_EM_ORDEM.find((campo) => erros[campo])
+    if (!primeiroCampo) return
+    document.getElementById(primeiroCampo)?.scrollIntoView({ behavior: "smooth", block: "center" })
+    setFocus(primeiroCampo)
+  }
+
   return (
     <section id="formulario" className="bg-gray-50 px-4 py-20">
       <div className="mx-auto max-w-3xl rounded-2xl bg-white p-6 shadow-xl md:p-10">
@@ -107,7 +126,7 @@ export default function Formulario() {
         </div>
 
         <form
-          onSubmit={handleSubmit(onSubmit)}
+          onSubmit={handleSubmit(onSubmit, onError)}
           noValidate
           className="grid grid-cols-1 gap-5 md:grid-cols-2"
         >
@@ -119,6 +138,9 @@ export default function Formulario() {
             >
               Nome completo
             </label>
+            <span id="nome-ajuda" className="text-sm text-gray-500">
+              {TEXTOS_AJUDA.nome}
+            </span>
             <div className="relative">
               <input
                 id="nome"
@@ -126,7 +148,7 @@ export default function Formulario() {
                 placeholder="Seu nome completo"
                 className={`${CAMPO_BASE} ${bordaCampo(!!errors.nome, !!touchedFields.nome && !errors.nome)} pr-10`}
                 aria-invalid={!!errors.nome}
-                aria-describedby={errors.nome ? "nome-erro" : undefined}
+                aria-describedby={idsDescricao("nome-ajuda", !!errors.nome, "nome-erro")}
                 {...register("nome")}
               />
               {!!touchedFields.nome && !errors.nome && (
@@ -138,9 +160,9 @@ export default function Formulario() {
               )}
             </div>
             {errors.nome && (
-              <span id="nome-erro" className="flex items-center gap-1 text-sm text-red-600">
+              <span id="nome-erro" role="alert" className="flex items-center gap-1 text-sm text-red-600">
                 <AlertCircle size={12} aria-hidden="true" />
-                {mensagensErro.nome}
+                {errors.nome.message}
               </span>
             )}
           </div>
@@ -153,6 +175,9 @@ export default function Formulario() {
             >
               CPF
             </label>
+            <span id="cpf-ajuda" className="text-sm text-gray-500">
+              {TEXTOS_AJUDA.cpf}
+            </span>
             <div className="relative">
               <Controller
                 name="cpf"
@@ -165,7 +190,7 @@ export default function Formulario() {
                     placeholder="000.000.000-00"
                     className={`${CAMPO_BASE} ${bordaCampo(!!errors.cpf, !!touchedFields.cpf && !errors.cpf)} pr-10`}
                     aria-invalid={!!errors.cpf}
-                    aria-describedby={errors.cpf ? "cpf-erro" : undefined}
+                    aria-describedby={idsDescricao("cpf-ajuda", !!errors.cpf, "cpf-erro")}
                     name={field.name}
                     value={field.value}
                     onBlur={field.onBlur}
@@ -183,9 +208,9 @@ export default function Formulario() {
               )}
             </div>
             {errors.cpf && (
-              <span id="cpf-erro" className="flex items-center gap-1 text-sm text-red-600">
+              <span id="cpf-erro" role="alert" className="flex items-center gap-1 text-sm text-red-600">
                 <AlertCircle size={12} aria-hidden="true" />
-                {mensagensErro.cpf}
+                {errors.cpf.message}
               </span>
             )}
           </div>
@@ -198,6 +223,9 @@ export default function Formulario() {
             >
               Data de nascimento
             </label>
+            <span id="dataNascimento-ajuda" className="text-sm text-gray-500">
+              {TEXTOS_AJUDA.dataNascimento}
+            </span>
             <div className="relative">
               <Controller
                 name="dataNascimento"
@@ -210,7 +238,7 @@ export default function Formulario() {
                     placeholder="00/00/0000"
                     className={`${CAMPO_BASE} ${bordaCampo(!!errors.dataNascimento, !!touchedFields.dataNascimento && !errors.dataNascimento)} pr-10`}
                     aria-invalid={!!errors.dataNascimento}
-                    aria-describedby={errors.dataNascimento ? "dataNascimento-erro" : undefined}
+                    aria-describedby={idsDescricao("dataNascimento-ajuda", !!errors.dataNascimento, "dataNascimento-erro")}
                     name={field.name}
                     value={field.value}
                     onBlur={field.onBlur}
@@ -228,9 +256,9 @@ export default function Formulario() {
               )}
             </div>
             {errors.dataNascimento && (
-              <span id="dataNascimento-erro" className="flex items-center gap-1 text-sm text-red-600">
+              <span id="dataNascimento-erro" role="alert" className="flex items-center gap-1 text-sm text-red-600">
                 <AlertCircle size={12} aria-hidden="true" />
-                {mensagensErro.dataNascimento}
+                {errors.dataNascimento.message}
               </span>
             )}
           </div>
@@ -250,7 +278,7 @@ export default function Formulario() {
                 placeholder="Sua cidade"
                 className={`${CAMPO_BASE} ${bordaCampo(!!errors.cidade, !!touchedFields.cidade && !errors.cidade)} pr-10`}
                 aria-invalid={!!errors.cidade}
-                aria-describedby={errors.cidade ? "cidade-erro" : undefined}
+                aria-describedby={idsDescricao(undefined, !!errors.cidade, "cidade-erro")}
                 {...register("cidade")}
               />
               {!!touchedFields.cidade && !errors.cidade && (
@@ -262,9 +290,9 @@ export default function Formulario() {
               )}
             </div>
             {errors.cidade && (
-              <span id="cidade-erro" className="flex items-center gap-1 text-sm text-red-600">
+              <span id="cidade-erro" role="alert" className="flex items-center gap-1 text-sm text-red-600">
                 <AlertCircle size={12} aria-hidden="true" />
-                {mensagensErro.cidade}
+                {errors.cidade.message}
               </span>
             )}
           </div>
@@ -277,6 +305,9 @@ export default function Formulario() {
             >
               Telefone
             </label>
+            <span id="telefone-ajuda" className="text-sm text-gray-500">
+              {TEXTOS_AJUDA.telefone}
+            </span>
             <div className="relative">
               <Controller
                 name="telefone"
@@ -289,7 +320,7 @@ export default function Formulario() {
                     placeholder="(00) 00000-0000"
                     className={`${CAMPO_BASE} ${bordaCampo(!!errors.telefone, !!touchedFields.telefone && !errors.telefone)} pr-10`}
                     aria-invalid={!!errors.telefone}
-                    aria-describedby={errors.telefone ? "telefone-erro" : undefined}
+                    aria-describedby={idsDescricao("telefone-ajuda", !!errors.telefone, "telefone-erro")}
                     name={field.name}
                     value={field.value}
                     onBlur={field.onBlur}
@@ -307,9 +338,9 @@ export default function Formulario() {
               )}
             </div>
             {errors.telefone && (
-              <span id="telefone-erro" className="flex items-center gap-1 text-sm text-red-600">
+              <span id="telefone-erro" role="alert" className="flex items-center gap-1 text-sm text-red-600">
                 <AlertCircle size={12} aria-hidden="true" />
-                {mensagensErro.telefone}
+                {errors.telefone.message}
               </span>
             )}
           </div>
@@ -326,7 +357,7 @@ export default function Formulario() {
               id="tamanhoCamisa"
               className={`${CAMPO_BASE} ${bordaCampo(!!errors.tamanhoCamisa, !!touchedFields.tamanhoCamisa && !errors.tamanhoCamisa)}`}
               aria-invalid={!!errors.tamanhoCamisa}
-              aria-describedby={errors.tamanhoCamisa ? "tamanhoCamisa-erro" : undefined}
+              aria-describedby={idsDescricao(undefined, !!errors.tamanhoCamisa, "tamanhoCamisa-erro")}
               {...register("tamanhoCamisa")}
             >
               {TAMANHOS_CAMISA.map((tamanho) => (
@@ -336,9 +367,9 @@ export default function Formulario() {
               ))}
             </select>
             {errors.tamanhoCamisa && (
-              <span id="tamanhoCamisa-erro" className="flex items-center gap-1 text-sm text-red-600">
+              <span id="tamanhoCamisa-erro" role="alert" className="flex items-center gap-1 text-sm text-red-600">
                 <AlertCircle size={12} aria-hidden="true" />
-                {mensagensErro.tamanhoCamisa}
+                {errors.tamanhoCamisa.message}
               </span>
             )}
           </div>
@@ -355,7 +386,7 @@ export default function Formulario() {
               id="modalidade"
               className={`${CAMPO_BASE} ${bordaCampo(!!errors.modalidade, !!touchedFields.modalidade && !errors.modalidade)}`}
               aria-invalid={!!errors.modalidade}
-              aria-describedby={errors.modalidade ? "modalidade-erro" : undefined}
+              aria-describedby={idsDescricao(undefined, !!errors.modalidade, "modalidade-erro")}
               {...register("modalidade")}
             >
               {MODALIDADES.map((modalidade) => (
@@ -365,9 +396,9 @@ export default function Formulario() {
               ))}
             </select>
             {errors.modalidade && (
-              <span id="modalidade-erro" className="flex items-center gap-1 text-sm text-red-600">
+              <span id="modalidade-erro" role="alert" className="flex items-center gap-1 text-sm text-red-600">
                 <AlertCircle size={12} aria-hidden="true" />
-                {mensagensErro.modalidade}
+                {errors.modalidade.message}
               </span>
             )}
           </div>

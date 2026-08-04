@@ -37,13 +37,27 @@ export function parseDataNascimentoISO(valor: string): string | null {
 }
 
 export const inscricaoSchema = z.object({
-  nome: z.string().min(3, 'Nome deve ter ao menos 3 caracteres'),
-  cpf: z.string().refine(validarCPF, { message: 'CPF inválido' }),
+  nome: z.string().refine(
+    (v) => v.trim().split(/\s+/).filter(Boolean).length >= 2,
+    'Digite seu nome completo (mínimo 2 palavras)'
+  ),
+  cpf: z.string().refine(validarCPF, 'CPF inválido — confira os números digitados'),
   cidade: z.string().min(2, 'Informe sua cidade'),
-  dataNascimento: z.string().min(1, 'Data de nascimento obrigatória'),
-  telefone: z.string().min(14, 'Telefone inválido'),
-  tamanhoCamisa: z.enum(['P', 'M', 'G', 'GG', 'XG']),
-  modalidade: z.enum(['caminhada_3km', 'corrida_6km']),
+  dataNascimento: z.string().superRefine((v, ctx) => {
+    if (v.replace(/\D/g, '').length < 8) {
+      ctx.addIssue('Data incompleta. Use o formato DD/MM/AAAA')
+      return
+    }
+    if (!parseDataNascimentoISO(v)) {
+      ctx.addIssue('Essa data não existe. Confira o dia e o mês informados')
+    }
+  }),
+  telefone: z.string().refine((v) => {
+    const digitos = v.replace(/\D/g, '')
+    return digitos.length === 10 || digitos.length === 11
+  }, 'Telefone inválido. Digite com DDD (ex: 75 99999-9999)'),
+  tamanhoCamisa: z.enum(['P', 'M', 'G', 'GG', 'XG'], 'Selecione o tamanho da camiseta'),
+  modalidade: z.enum(['caminhada_3km', 'corrida_6km'], 'Selecione a modalidade que deseja participar'),
 })
 
 export type InscricaoFormData = z.infer<typeof inscricaoSchema>

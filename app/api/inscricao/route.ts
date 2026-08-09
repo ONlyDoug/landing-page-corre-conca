@@ -10,6 +10,7 @@ import {
   VALOR_INSCRICAO,
 } from "@/lib/constants"
 import { supabaseAdmin } from "@/lib/supabase/server"
+import { finalizarCheckout } from "@/lib/confirmacaoCheckout"
 
 type InfinitePayLinkResponse = {
   url: string
@@ -162,6 +163,13 @@ export async function POST(request: Request) {
     return respostaJaInscrito(inscricaoExistente)
   }
 
+  const { data: preAprovacao } = await supabaseAdmin
+    .from("pagamentos_pre_aprovados")
+    .select("id, valor")
+    .eq("cpf", cpfLimpo)
+    .eq("utilizado", false)
+    .maybeSingle()
+
   const { data, error } = await supabaseAdmin
     .from("checkouts_pendentes")
     .insert({
@@ -173,7 +181,7 @@ export async function POST(request: Request) {
       tamanho_camisa: parsed.data.tamanhoCamisa,
       modalidade: parsed.data.modalidade,
       lote: 1,
-      valor_pago: VALOR_INSCRICAO,
+      valor_pago: preAprovacao?.valor ?? VALOR_INSCRICAO,
     })
     .select("id, qr_code_token")
     .single()
@@ -200,6 +208,37 @@ export async function POST(request: Request) {
   }
 
   // O checkout já foi gravado com sucesso — nada a partir daqui pode virar erro 5xx.
+
+  if (preAprovacao) {
+    const resultado = await finalizarCheckout({
+      checkoutId: data.id,
+      statusFinal: "confirmado",
+      forcar: true,
+    })
+
+    if (resultado.status === "confirmado") {
+      const { error: erroMarcarUsado } = await supabaseAdmin
+        .from("pagamentos_pre_aprovados")
+        .update({ utilizado: true, utilizado_em: new Date().toISOString() })
+        .eq("id", preAprovacao.id)
+
+      if (erroMarcarUsado) {
+        console.error("[inscricao] falha ao marcar pré-aprovação como utilizada:", erroMarcarUsado)
+      }
+
+      return NextResponse.json({
+        success: true,
+        qrCodeToken: data.qr_code_token,
+        jaConfirmado: true,
+      })
+    }
+
+    console.error(
+      "[inscricao] pré-aprovação encontrada mas finalizarCheckout falhou, seguindo fluxo normal:",
+      resultado
+    )
+  }
+
   const checkoutUrl = await gerarCheckoutDinamico({
     checkoutId: data.id,
     qrCodeToken: data.qr_code_token ?? "",

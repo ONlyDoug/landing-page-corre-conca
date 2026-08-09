@@ -201,6 +201,39 @@ export type Database = {
           },
         ]
       }
+      pagamentos_pre_aprovados: {
+        Row: {
+          comprovante_referencia: string | null
+          cpf: string
+          criado_em: string
+          id: string
+          motivo: string | null
+          utilizado: boolean
+          utilizado_em: string | null
+          valor: number
+        }
+        Insert: {
+          comprovante_referencia?: string | null
+          cpf: string
+          criado_em?: string
+          id?: string
+          motivo?: string | null
+          utilizado?: boolean
+          utilizado_em?: string | null
+          valor?: number
+        }
+        Update: {
+          comprovante_referencia?: string | null
+          cpf?: string
+          criado_em?: string
+          id?: string
+          motivo?: string | null
+          utilizado?: boolean
+          utilizado_em?: string | null
+          valor?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

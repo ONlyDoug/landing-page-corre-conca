@@ -16,6 +16,7 @@ type InscricaoResponse = {
   qrCodeToken?: string
   checkoutUrl?: string
   jaInscrito?: boolean
+  jaConfirmado?: boolean
   statusPagamento?: string
 }
 
@@ -87,6 +88,12 @@ export default function Formulario() {
       const result = (await response.json()) as InscricaoResponse
 
       if (response.status === 409 && result.jaInscrito && result.qrCodeToken) {
+        window.localStorage.setItem(LOCALSTORAGE_QR_TOKEN_KEY, result.qrCodeToken)
+        router.push(`/acompanhar/${result.qrCodeToken}`)
+        return
+      }
+
+      if (result.success && result.jaConfirmado && result.qrCodeToken) {
         window.localStorage.setItem(LOCALSTORAGE_QR_TOKEN_KEY, result.qrCodeToken)
         router.push(`/acompanhar/${result.qrCodeToken}`)
         return

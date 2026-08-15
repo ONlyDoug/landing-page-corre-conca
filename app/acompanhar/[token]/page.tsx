@@ -15,8 +15,16 @@ import {
   Shuffle,
   Download,
   IdCard,
+  Pencil,
 } from "lucide-react"
-import { LINK_INFINITEPAY, REDES_SOCIAIS, LOCALSTORAGE_QR_TOKEN_KEY } from "@/lib/constants"
+import {
+  LINK_INFINITEPAY,
+  REDES_SOCIAIS,
+  LOCALSTORAGE_QR_TOKEN_KEY,
+  PRAZO_EDICAO_INSCRICAO,
+  MODALIDADES,
+  TAMANHOS_CAMISA,
+} from "@/lib/constants"
 import { modalidadeLabel, formatBRL, isStatusAguardando } from "@/lib/utils"
 
 type InscricaoAtleta = {
@@ -56,6 +64,13 @@ export default function AcompanharTokenPage() {
   const [escolhendoBib, setEscolhendoBib] = useState(false)
   const [numeroDesejado, setNumeroDesejado] = useState("")
   const [erroBib, setErroBib] = useState<string | null>(null)
+
+  const prazoEncerrado = new Date() > new Date(PRAZO_EDICAO_INSCRICAO)
+  const [editando, setEditando] = useState(false)
+  const [novaModalidade, setNovaModalidade] = useState("")
+  const [novoTamanho, setNovoTamanho] = useState("")
+  const [salvandoEdicao, setSalvandoEdicao] = useState(false)
+  const [erroEdicao, setErroEdicao] = useState<string | null>(null)
 
   const carregarInscricao = useCallback(async () => {
     try {
@@ -145,6 +160,43 @@ export default function AcompanharTokenPage() {
     },
     [params.token]
   )
+
+  const salvarEdicao = useCallback(async () => {
+    setSalvandoEdicao(true)
+    setErroEdicao(null)
+    try {
+      const res = await fetch(`/api/atleta/${params.token}/editar`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          modalidade: novaModalidade || undefined,
+          tamanhoCamisa: novoTamanho || undefined,
+        }),
+      })
+      const data = (await res.json()) as { modalidade?: string; tamanhoCamisa?: string; error?: string }
+
+      if (res.ok) {
+        setInscricao((prev) =>
+          prev
+            ? {
+                ...prev,
+                modalidade: data.modalidade ?? prev.modalidade,
+                tamanho_camisa: data.tamanhoCamisa ?? prev.tamanho_camisa,
+              }
+            : prev
+        )
+        setEditando(false)
+      } else if (data.error === "prazo_encerrado") {
+        setErroEdicao("O prazo para alterar esses dados já encerrou.")
+      } else {
+        setErroEdicao("Não foi possível salvar. Tente novamente.")
+      }
+    } catch {
+      setErroEdicao("Não foi possível salvar. Tente novamente.")
+    } finally {
+      setSalvandoEdicao(false)
+    }
+  }, [params.token, novaModalidade, novoTamanho])
 
   // Auto-verificação: dispara uma única vez quando o atleta chega do redirect da InfinitePay
   // (order_nsu na URL) enquanto a inscrição ainda está pendente. O ref evita disparo duplo
@@ -347,14 +399,105 @@ export default function AcompanharTokenPage() {
               <dt className="text-gray-500">Nome</dt>
               <dd className="font-medium text-gray-800">{inscricao.nome}</dd>
             </div>
-            <div className="flex justify-between py-2.5">
-              <dt className="text-gray-500">Modalidade</dt>
-              <dd className="font-medium text-gray-800">{modalidadeLabel(inscricao.modalidade)}</dd>
-            </div>
-            <div className="flex justify-between py-2.5">
-              <dt className="text-gray-500">Camisa</dt>
-              <dd className="font-medium text-gray-800">{inscricao.tamanho_camisa}</dd>
-            </div>
+            {editando ? (
+              <div className="py-2.5">
+                <div className="mb-2">
+                  <label className="mb-1 block text-xs text-gray-500" htmlFor="editar-modalidade">
+                    Modalidade
+                  </label>
+                  <select
+                    id="editar-modalidade"
+                    value={novaModalidade || inscricao.modalidade}
+                    onChange={(e) => setNovaModalidade(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                  >
+                    {MODALIDADES.map((m) => (
+                      <option key={m.slug} value={m.slug}>
+                        {m.nome} {m.distancia}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="mb-1 block text-xs text-gray-500" htmlFor="editar-camisa">
+                    Camisa
+                  </label>
+                  <select
+                    id="editar-camisa"
+                    value={novoTamanho || inscricao.tamanho_camisa}
+                    onChange={(e) => setNovoTamanho(e.target.value)}
+                    className="mt-1 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+                  >
+                    {TAMANHOS_CAMISA.map((tamanho) => (
+                      <option key={tamanho} value={tamanho}>
+                        {tamanho}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {erroEdicao && <p className="mt-1 text-xs text-red-600">{erroEdicao}</p>}
+
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={salvarEdicao}
+                    disabled={salvandoEdicao}
+                    className="rounded-lg bg-roxo px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                  >
+                    {salvandoEdicao ? "Salvando..." : "Salvar"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditando(false)
+                      setErroEdicao(null)
+                    }}
+                    className="rounded-lg px-3 py-1.5 text-xs text-gray-500"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="flex justify-between py-2.5">
+                  <dt className="text-gray-500">Modalidade</dt>
+                  <dd className="flex items-center gap-2 font-medium text-gray-800">
+                    {modalidadeLabel(inscricao.modalidade)}
+                    {!prazoEncerrado && inscricao.status_pagamento === "confirmado" && (
+                      <button
+                        type="button"
+                        onClick={() => setEditando(true)}
+                        className="flex items-center gap-1 text-xs font-normal text-roxo underline"
+                      >
+                        <Pencil size={12} aria-hidden="true" />
+                        Alterar
+                      </button>
+                    )}
+                  </dd>
+                </div>
+                <div className="flex justify-between py-2.5">
+                  <dt className="text-gray-500">Camisa</dt>
+                  <dd className="flex items-center gap-2 font-medium text-gray-800">
+                    {inscricao.tamanho_camisa}
+                    {!prazoEncerrado && inscricao.status_pagamento === "confirmado" && (
+                      <button
+                        type="button"
+                        onClick={() => setEditando(true)}
+                        className="flex items-center gap-1 text-xs font-normal text-roxo underline"
+                      >
+                        <Pencil size={12} aria-hidden="true" />
+                        Alterar
+                      </button>
+                    )}
+                  </dd>
+                </div>
+                {prazoEncerrado && inscricao.status_pagamento === "confirmado" && (
+                  <p className="pb-1 text-xs text-gray-400">Alterações encerradas em 29/08/2026</p>
+                )}
+              </>
+            )}
             <div className="flex justify-between py-2.5">
               <dt className="text-gray-500">Valor</dt>
               <dd className="font-medium text-gray-800">{formatBRL(inscricao.valor_pago)}</dd>

@@ -17,6 +17,12 @@ export const MODALIDADES: Modalidade[] = [
 export const VALOR_INSCRICAO = 25.0
 export const CONDICAO_INSCRICAO = 'R$ 25,00 + 2kg de alimento não perecível'
 
+// Fase 14 — prazo final para atletas alterarem modalidade/tamanho de camisa
+export const PRAZO_EDICAO_INSCRICAO = '2026-08-29T23:59:59-03:00'
+
+// Prazo final para novas inscrições
+export const PRAZO_ENCERRAMENTO_INSCRICOES = '2026-08-24T23:59:59-03:00'
+
 export const TAMANHOS_CAMISA = ['P', 'M', 'G', 'GG', 'XG'] as const
 
 export const PREMIACAO = {
@@ -53,6 +59,7 @@ export const FAQ_ITEMS = [
   { pergunta: 'Posso fazer a caminhada e a corrida?', resposta: 'Não, você deve escolher uma modalidade no momento da inscrição.' },
   { pergunta: 'A premiação em dinheiro vale para a caminhada?', resposta: 'Não, apenas para a corrida 6KM.' },
   { pergunta: 'Onde retiro o kit?', resposta: 'Data e local a confirmar — fique ligado em nossas redes sociais!' },
+  { pergunta: 'Até quando posso me inscrever?', resposta: 'As inscrições vão até 24 de agosto de 2026.' },
 ]
 
 export const REGULAMENTO_ITEMS = [
@@ -60,6 +67,7 @@ export const REGULAMENTO_ITEMS = [
   { titulo: 'Política de Reembolso', texto: 'Não há reembolso, exceto desistência formal em até 7 dias após a inscrição (Art. 49 do CDC) ou cancelamento do evento.' },
   { titulo: 'Aceite', texto: 'Ao concluir a inscrição, o atleta aceita automaticamente este regulamento.' },
   { titulo: 'Hidratação', texto: 'Postos de água mineral ao longo de todo o percurso.' },
+  { titulo: 'Prazo de Inscrição', texto: 'As inscrições encerram em 24 de agosto de 2026, ou antes disso caso as vagas se esgotem.' },
 ]
 
 // PLACEHOLDERS — trocar antes do lançamento real (ver HANDOFF.md)

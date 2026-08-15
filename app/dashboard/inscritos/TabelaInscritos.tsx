@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Loader2, CheckCircle } from "lucide-react"
+import { Loader2, CheckCircle, UserPlus } from "lucide-react"
 import {
   mascararCPF,
   modalidadeLabel,
@@ -11,6 +11,7 @@ import {
   statusPagamentoLabel,
   statusPagamentoBadgeClasses,
 } from "@/lib/utils"
+import NovaInscricaoManual from "./NovaInscricaoManual"
 
 export interface InscricaoRow {
   id: string
@@ -44,6 +45,7 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
   const [selecionados, setSelecionados] = useState<Set<string>>(new Set())
   const [loadingLote, setLoadingLote] = useState(false)
   const [resultadoLote, setResultadoLote] = useState<string | null>(null)
+  const [showModalManual, setShowModalManual] = useState(false)
 
   const filtrados = useMemo(() => {
     return dados.filter((i) => {
@@ -190,6 +192,26 @@ export default function TabelaInscritos({ inscritos }: TabelaInscritosProps) {
 
   return (
     <div>
+      <div className="mb-4 flex justify-end">
+        <button
+          type="button"
+          onClick={() => setShowModalManual(true)}
+          className="flex items-center gap-2 rounded-lg bg-roxo px-4 py-2.5 text-sm font-medium text-white hover:bg-roxo-dark"
+        >
+          <UserPlus size={16} aria-hidden="true" />
+          Inscrição Manual
+        </button>
+      </div>
+
+      <NovaInscricaoManual
+        isOpen={showModalManual}
+        onClose={() => setShowModalManual(false)}
+        onCriada={() => {
+          setShowModalManual(false)
+          router.refresh()
+        }}
+      />
+
       {/* VISUAL: barra-filtros */}
       <div className="bg-white rounded-xl shadow-sm p-4 mb-4 flex flex-wrap gap-3">
         <input

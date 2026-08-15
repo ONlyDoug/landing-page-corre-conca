@@ -8,6 +8,7 @@ import {
   SITE_URL,
   WEBHOOK_URL,
   VALOR_INSCRICAO,
+  PRAZO_ENCERRAMENTO_INSCRICOES,
 } from "@/lib/constants"
 import { supabaseAdmin } from "@/lib/supabase/server"
 import { finalizarCheckout } from "@/lib/confirmacaoCheckout"
@@ -126,6 +127,10 @@ async function gerarCheckoutDinamico(params: {
 }
 
 export async function POST(request: Request) {
+  if (new Date() > new Date(PRAZO_ENCERRAMENTO_INSCRICOES)) {
+    return NextResponse.json({ error: "inscricoes_encerradas" }, { status: 403 })
+  }
+
   let body: unknown
   try {
     body = await request.json()

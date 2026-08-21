@@ -1,11 +1,11 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useForm, Controller, type FieldErrors } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { Loader2, CheckCircle, AlertCircle, Clock } from "lucide-react"
+import { Loader2, CheckCircle, AlertCircle, Clock, Trophy } from "lucide-react"
 import { inscricaoSchema, type InscricaoFormData } from "@/lib/validations"
 import { maskCPF, maskTelefone, maskDataNascimento } from "@/lib/utils"
 import {
@@ -61,12 +61,20 @@ export default function Formulario() {
   const [submitError, setSubmitError] = useState(false)
   const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null)
   const [qrCodeToken, setQrCodeToken] = useState<string | null>(null)
+  const [statusVagas, setStatusVagas] = useState<{ esgotadas: boolean; motivo?: string } | null>(null)
 
-  const inscricoesEncerradas = new Date() > new Date(PRAZO_ENCERRAMENTO_INSCRICOES)
+  useEffect(() => {
+    fetch("/api/inscricao/vagas")
+      .then((res) => res.json())
+      .then((data) => setStatusVagas(data))
+      .catch(() => setStatusVagas({ esgotadas: false }))
+  }, [])
+
+  const inscricoesEncerradas = statusVagas?.esgotadas
   const diasRestantes = Math.ceil(
     (new Date(PRAZO_ENCERRAMENTO_INSCRICOES).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   )
-  const avisoUrgente = !inscricoesEncerradas && diasRestantes <= 5 && diasRestantes > 0
+  const avisoUrgente = statusVagas && !statusVagas.esgotadas && diasRestantes <= 5 && diasRestantes > 0
 
   const {
     register,
@@ -143,15 +151,30 @@ export default function Formulario() {
           </p>
         </div>
 
-        {inscricoesEncerradas ? (
-          <div className="bg-white rounded-2xl p-8 text-center">
-            <Clock className="text-gray-400 mx-auto mb-3" size={48} aria-hidden="true" />
-            <h3 className="text-xl font-bold text-gray-800 mb-2">Inscrições Encerradas</h3>
-            <p className="text-gray-500 text-sm">
-              O prazo de inscrições para o Corre Conça foi encerrado em 24 de agosto.
-              Acompanhe nosso Instagram para novidades sobre o evento.
-            </p>
+        {statusVagas === null ? (
+          <div className="flex justify-center p-8">
+            <Loader2 className="h-8 w-8 animate-spin text-roxo" />
           </div>
+        ) : inscricoesEncerradas ? (
+          statusVagas?.motivo === 'limite' ? (
+            <div className="bg-white rounded-2xl p-8 text-center">
+              <Trophy className="text-gray-400 mx-auto mb-3" size={48} aria-hidden="true" />
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Vagas Esgotadas!</h3>
+              <p className="text-gray-500 text-sm">
+                Atingimos o limite máximo de 300 atletas confirmados.
+                Agradecemos a todos pelo interesse e nos vemos no Corre Conça!
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl p-8 text-center">
+              <Clock className="text-gray-400 mx-auto mb-3" size={48} aria-hidden="true" />
+              <h3 className="text-xl font-bold text-gray-800 mb-2">Inscrições Encerradas</h3>
+              <p className="text-gray-500 text-sm">
+                O prazo de inscrições para o Corre Conça foi encerrado em 24 de agosto.
+                Acompanhe nosso Instagram para novidades sobre o evento.
+              </p>
+            </div>
+          )
         ) : (
         <form
           onSubmit={handleSubmit(onSubmit, onError)}

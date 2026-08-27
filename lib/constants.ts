@@ -21,7 +21,7 @@ export const CONDICAO_INSCRICAO = 'R$ 25,00 + 2kg de alimento não perecível'
 export const PRAZO_EDICAO_INSCRICAO = '2026-08-29T23:59:59-03:00'
 
 // Prazo final para novas inscrições
-export const PRAZO_ENCERRAMENTO_INSCRICOES = '2026-08-24T23:59:59-03:00'
+export const PRAZO_ENCERRAMENTO_INSCRICOES = '2026-09-02T23:59:59-03:00'
 
 // Limite máximo de atletas confirmados
 export const LIMITE_INSCRICOES = 300
@@ -43,7 +43,7 @@ export const KIT = [
   { icone: 'Shirt', label: 'Camisa Oficial do Evento' },
 ]
 
-export const KIT_NOTA = 'Kit retirado mediante documento com foto + 2kg de alimento não perecível. Data e local a confirmar — fique de olho em nossas redes sociais!'
+export const KIT_NOTA = 'Kit retirado mediante documento com foto + 2kg de alimento não perecível.'
 
 export const NAV_LINKS = [
   { href: '#inicio', label: 'Início' },
@@ -62,16 +62,16 @@ export const FAQ_ITEMS = [
   { pergunta: 'Como fica minha inscrição se o evento for cancelado?', resposta: 'Reembolso integral.' },
   { pergunta: 'Posso fazer a caminhada e a corrida?', resposta: 'Não, você deve escolher uma modalidade no momento da inscrição.' },
   { pergunta: 'A premiação em dinheiro vale para a caminhada?', resposta: 'Não, apenas para a corrida 6KM.' },
-  { pergunta: 'Onde retiro o kit?', resposta: 'Data e local a confirmar — fique ligado em nossas redes sociais!' },
-  { pergunta: 'Até quando posso me inscrever?', resposta: 'As inscrições vão até 24 de agosto de 2026.' },
+  { pergunta: 'Onde retiro o kit?', resposta: 'Dias 03 e 04/09 na Rua Castro Alves (próximo à Prefeitura), Conceição da Feira, Bahia. Leve 2kg de alimento não perecível.' },
+  { pergunta: 'Até quando posso me inscrever?', resposta: 'As inscrições vão até 02 de setembro de 2026 ou até esgotar o novo lote.' },
 ]
 
 export const REGULAMENTO_ITEMS = [
-  { titulo: 'Retirada do Kit', texto: 'Data e local a confirmar; apresentar documento com foto + 2kg de alimento não perecível.' },
+  { titulo: 'Retirada do Kit', texto: 'Dias 03 e 04/09 na Rua Castro Alves (próximo à Prefeitura), Conceição da Feira, Bahia. Apresentar documento com foto + 2kg de alimento não perecível.' },
   { titulo: 'Política de Reembolso', texto: 'Não há reembolso, exceto desistência formal em até 7 dias após a inscrição (Art. 49 do CDC) ou cancelamento do evento.' },
   { titulo: 'Aceite', texto: 'Ao concluir a inscrição, o atleta aceita automaticamente este regulamento.' },
   { titulo: 'Hidratação', texto: 'Postos de água mineral ao longo de todo o percurso.' },
-  { titulo: 'Prazo de Inscrição', texto: 'As inscrições encerram em 24 de agosto de 2026, ou antes disso caso as vagas se esgotem.' },
+  { titulo: 'Prazo de Inscrição', texto: 'As inscrições encerram em 02 de setembro de 2026, ou antes disso caso as vagas se esgotem.' },
 ]
 
 // PLACEHOLDERS — trocar antes do lançamento real (ver HANDOFF.md)

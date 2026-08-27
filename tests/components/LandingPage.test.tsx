@@ -19,7 +19,7 @@ describe('Informações na Landing Page', () => {
   it('Visitante visualiza informações da retirada', () => {
     render(<Page />)
     expect(screen.getByText(/03 e 04\/09/i)).toBeInTheDocument()
-    expect(screen.getByText(/Rua Castro Alves, Conceição da Feira, Bahia/i)).toBeInTheDocument()
+    expect(screen.getByText(/Rua Castro Alves \(próximo à Prefeitura\), Conceição da Feira, Bahia/i)).toBeInTheDocument()
     expect(screen.getAllByText(/2kg de alimento não perecível/i).length).toBeGreaterThan(0)
   })
 

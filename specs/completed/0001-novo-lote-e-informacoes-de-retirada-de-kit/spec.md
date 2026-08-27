@@ -55,7 +55,7 @@ Venda de novas vagas no valor atualizado (R$ 49,90), aumento de arrecadação de
 
 #### Dúvidas respondidas
 
-- **Q**: Qual o endereço de retirada? → **A**: Rua Castro Alves, Conceição da Feira, Bahia.
+- **Q**: Qual o endereço de retirada? → **A**: Rua Castro Alves (próximo à Prefeitura), Conceição da Feira, Bahia.
 - **Q**: Qual o tipo de alimento? → **A**: Alimento não perecível.
 - **Q**: O novo lote substitui o atual imediatamente? → **A**: Sim.
 
@@ -116,7 +116,7 @@ Feature: Informações na Landing Page
     Given que sou um visitante acessando a página no Desktop
     When eu navego até as informações da corrida
     Then vejo que a entrega dos kits ocorrerá em 03 e 04/09
-    And vejo o local como Rua Castro Alves, Conceição da Feira, Bahia
+    And vejo o local como Rua Castro Alves (próximo à Prefeitura), Conceição da Feira, Bahia
     And vejo o requisito de doação de 2kg de alimento não perecível
 ```
 
@@ -197,7 +197,7 @@ Feature: Controle de concorrência
 #### Funcionais
 
 - **FR-001**: O sistema deve substituir imediatamente o lote anterior pelo novo lote precificado em R$ 49,90.
-- **FR-002**: A landing page deve exibir os textos: datas 03/09 e 04/09, local "Rua Castro Alves, Conceição da Feira, Bahia", requisito "2kg de alimento não perecível".
+- **FR-002**: A landing page deve exibir os textos: datas 03/09 e 04/09, local "Rua Castro Alves (próximo à Prefeitura), Conceição da Feira, Bahia", requisito "2kg de alimento não perecível".
 - **FR-003**: O sistema deve bloquear inscrições para este lote caso atinja exatamente 70 vendas.
 
 #### Não funcionais

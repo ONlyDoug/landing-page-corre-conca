@@ -72,7 +72,7 @@ export default function Kit() {
             </div>
             <div className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-roxo uppercase tracking-wider">Local</span>
-              <p className="text-gray-700 font-medium">Rua Castro Alves, Conceição da Feira, Bahia</p>
+              <p className="text-gray-700 font-medium">Rua Castro Alves (próximo à Prefeitura), Conceição da Feira, Bahia</p>
             </div>
             <div className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-roxo uppercase tracking-wider">Requisito Obrigatório</span>

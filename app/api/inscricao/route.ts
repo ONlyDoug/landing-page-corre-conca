@@ -195,7 +195,7 @@ export async function POST(request: Request) {
       telefone: parsed.data.telefone,
       tamanho_camisa: parsed.data.tamanhoCamisa,
       modalidade: parsed.data.modalidade,
-      lote: 1,
+      lote: 2,
       valor_pago: preAprovacao?.valor ?? VALOR_INSCRICAO,
     })
     .select("id, qr_code_token")
@@ -254,9 +254,16 @@ export async function POST(request: Request) {
     )
   }
 
-  const checkoutUrl = '' // LINK_INFINITEPAY ou link desativado intencionalmente para não confirmar inscrições no novo lote
+  const checkoutUrl = await gerarCheckoutDinamico({
+    checkoutId: data.id,
+    qrCodeToken: data.qr_code_token ?? "",
+    nome: parsed.data.nome,
+    telefone: parsed.data.telefone,
+    modalidade: parsed.data.modalidade,
+    valor: VALOR_INSCRICAO,
+  })
 
-  if (checkoutUrl !== '') {
+  if (checkoutUrl !== LINK_INFINITEPAY) {
     const { error: erroUpdateCheckout } = await supabaseAdmin
       .from("checkouts_pendentes")
       .update({ checkout_url: checkoutUrl })

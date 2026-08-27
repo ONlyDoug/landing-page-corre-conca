@@ -75,7 +75,7 @@ export const REGULAMENTO_ITEMS = [
 ]
 
 // PLACEHOLDERS — trocar antes do lançamento real (ver HANDOFF.md)
-export const LINK_INFINITEPAY = '' // TODO: adicionar novo link com valor 49.90
+export const LINK_INFINITEPAY = 'https://checkout.infinitepay.io/delso-palmeira-de/osgENj6SzS'
 export const WEBHOOK_URL_PRODUCAO = 'https://landing-page-corre-conca.vercel.app/api/webhook/infinitepay' // referência: configurar este endereço no painel InfinitePay (aba "Depois do pagamento")
 export const EMAIL_ORGANIZACAO = 'contato@correconca.org.br' // PLACEHOLDER: e-mail real da organização
 export const REDES_SOCIAIS = { instagram: 'https://www.instagram.com/corrida_solidariaa', whatsapp: 'https://wa.me/5575981937220' }

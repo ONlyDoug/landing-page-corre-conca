@@ -10,7 +10,10 @@ export function Lotes() {
           Garanta sua vaga na Corre Conça.
         </p>
 
-        <div className="mx-auto mt-10 max-w-sm rounded-2xl border border-white/10 bg-white/5 p-8 text-center shadow-lg">
+        <div className="mx-auto mt-10 max-w-sm relative rounded-2xl border border-white/10 bg-white/5 p-8 text-center shadow-lg">
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-yellow-400 px-3 py-1 text-xs font-bold uppercase tracking-wider text-roxo-dark">
+            🔥 2º Lote Aberto
+          </div>
           <p className="text-4xl font-extrabold">{formatBRL(VALOR_INSCRICAO)}</p>
           <p className="mt-2 text-sm text-white/80">{CONDICAO_INSCRICAO}</p>
 

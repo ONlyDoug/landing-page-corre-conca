@@ -43,3 +43,9 @@ next-env.d.ts
 .vercel
 .env*
 !.env.example
+
+# Scratch and data
+scratch/
+*.csv
+*.xlsx
+resumo_inscritos.md

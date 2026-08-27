@@ -55,6 +55,31 @@ export default function Kit() {
         </motion.div>
 
         <p className="mt-10 text-center text-sm text-gray-500">{KIT_NOTA}</p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-16 rounded-2xl bg-white p-8 shadow-md border border-gray-100"
+          role="region"
+          aria-label="Retirada de Kits"
+        >
+          <h3 className="text-xl font-bold text-roxo-dark mb-6 text-center md:text-left">Informações da Retirada de Kits</h3>
+          <div data-testid="info-section" className="flex flex-col md:flex-row gap-6 md:gap-12 justify-center md:justify-start">
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-semibold text-roxo uppercase tracking-wider">Datas</span>
+              <p className="text-gray-700 font-medium">03 e 04/09</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-semibold text-roxo uppercase tracking-wider">Local</span>
+              <p className="text-gray-700 font-medium">Rua Castro Alves, Conceição da Feira, Bahia</p>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-semibold text-roxo uppercase tracking-wider">Requisito Obrigatório</span>
+              <p className="text-gray-700 font-medium">2kg de alimento não perecível</p>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   )

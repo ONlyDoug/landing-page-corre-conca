@@ -161,7 +161,7 @@ export default function Formulario() {
               <Trophy className="text-gray-400 mx-auto mb-3" size={48} aria-hidden="true" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">Vagas Esgotadas!</h3>
               <p className="text-gray-500 text-sm">
-                Atingimos o limite máximo de 300 atletas confirmados.
+                Atingimos o limite máximo de 370 atletas confirmados.
                 Agradecemos a todos pelo interesse e nos vemos no Corre Conça!
               </p>
             </div>

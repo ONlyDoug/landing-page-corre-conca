@@ -14,8 +14,8 @@ export const MODALIDADES: Modalidade[] = [
   { nome: 'Corrida', distancia: '6KM', slug: 'corrida_6km' },
 ]
 
-export const VALOR_INSCRICAO = 25.0
-export const CONDICAO_INSCRICAO = 'R$ 25,00 + 2kg de alimento não perecível'
+export const VALOR_INSCRICAO = 49.90
+export const CONDICAO_INSCRICAO = 'R$ 49,90 + 2kg de alimento não perecível'
 
 // Fase 14 — prazo final para atletas alterarem modalidade/tamanho de camisa
 export const PRAZO_EDICAO_INSCRICAO = '2026-08-29T23:59:59-03:00'
@@ -75,7 +75,7 @@ export const REGULAMENTO_ITEMS = [
 ]
 
 // PLACEHOLDERS — trocar antes do lançamento real (ver HANDOFF.md)
-export const LINK_INFINITEPAY = 'https://checkout.infinitepay.io/delso-palmeira-de/OcZUhPRkf8'
+export const LINK_INFINITEPAY = '' // TODO: adicionar novo link com valor 49.90
 export const WEBHOOK_URL_PRODUCAO = 'https://landing-page-corre-conca.vercel.app/api/webhook/infinitepay' // referência: configurar este endereço no painel InfinitePay (aba "Depois do pagamento")
 export const EMAIL_ORGANIZACAO = 'contato@correconca.org.br' // PLACEHOLDER: e-mail real da organização
 export const REDES_SOCIAIS = { instagram: 'https://www.instagram.com/corrida_solidariaa', whatsapp: 'https://wa.me/5575981937220' }

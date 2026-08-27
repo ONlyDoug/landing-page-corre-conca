@@ -254,16 +254,9 @@ export async function POST(request: Request) {
     )
   }
 
-  const checkoutUrl = await gerarCheckoutDinamico({
-    checkoutId: data.id,
-    qrCodeToken: data.qr_code_token ?? "",
-    nome: parsed.data.nome,
-    telefone: parsed.data.telefone,
-    modalidade: parsed.data.modalidade,
-    valor: VALOR_INSCRICAO,
-  })
+  const checkoutUrl = '' // LINK_INFINITEPAY ou link desativado intencionalmente para não confirmar inscrições no novo lote
 
-  if (checkoutUrl !== LINK_INFINITEPAY) {
+  if (checkoutUrl !== '') {
     const { error: erroUpdateCheckout } = await supabaseAdmin
       .from("checkouts_pendentes")
       .update({ checkout_url: checkoutUrl })

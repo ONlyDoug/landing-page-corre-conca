@@ -10,7 +10,7 @@ export async function GET(request: Request) {
       .select("*")
       .eq("lote", 2)
       .eq("status_pagamento", "confirmado")
-      .order("created_at", { ascending: true })
+      .order("criado_em", { ascending: true })
 
     if (error) {
       return NextResponse.json({ error: "Erro ao buscar", details: error }, { status: 500 })
@@ -26,7 +26,7 @@ export async function GET(request: Request) {
     const keys = Object.keys(records[0])
     
     // Converte pra CSV
-    let csvString = keys.join(",") + "\n"
+    let csvString = keys.join(";") + "\n"
     for (const record of records) {
       csvString += keys.map(k => {
         let val = record[k]
@@ -34,7 +34,7 @@ export async function GET(request: Request) {
         // Escapa aspas
         const str = String(val).replace(/"/g, '""')
         return `"${str}"`
-      }).join(",") + "\n"
+      }).join(";") + "\n"
     }
     
     // Adiciona BOM para o Excel abrir UTF-8 perfeitamente

@@ -11,7 +11,7 @@ export async function GET(request: Request) {
       .select("*")
       .eq("lote", 2)
       .eq("status_pagamento", "confirmado")
-      .order("created_at", { ascending: true })
+      .order("criado_em", { ascending: true })
 
     if (error) {
       return NextResponse.json({ error: "Erro ao buscar inscrições", details: error }, { status: 500 })

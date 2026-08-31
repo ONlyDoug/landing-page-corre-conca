@@ -170,7 +170,7 @@ export default function Formulario() {
               <Clock className="text-gray-400 mx-auto mb-3" size={48} aria-hidden="true" />
               <h3 className="text-xl font-bold text-gray-800 mb-2">Inscrições Encerradas</h3>
               <p className="text-gray-500 text-sm">
-                O prazo de inscrições para o Corre Conça foi encerrado.
+                O prazo de inscrições para o Corre Conça foi encerrado em 31 de agosto.
                 Acompanhe nosso Instagram para novidades sobre o evento.
               </p>
             </div>

@@ -21,7 +21,7 @@ export const CONDICAO_INSCRICAO = 'R$ 49,90 + 2kg de alimento não perecível'
 export const PRAZO_EDICAO_INSCRICAO = '2026-08-29T23:59:59-03:00'
 
 // Prazo final para novas inscrições
-export const PRAZO_ENCERRAMENTO_INSCRICOES = '2026-08-31T19:00:00-03:00'
+export const PRAZO_ENCERRAMENTO_INSCRICOES = '2026-08-31T00:00:00-03:00'
 
 // Limite máximo de atletas confirmados (300 do lote 1 + 70 do lote 2)
 export const LIMITE_INSCRICOES = 370

@@ -21,7 +21,7 @@ export const CONDICAO_INSCRICAO = 'R$ 49,90 + 2kg de alimento não perecível'
 export const PRAZO_EDICAO_INSCRICAO = '2026-08-29T23:59:59-03:00'
 
 // Prazo final para novas inscrições
-export const PRAZO_ENCERRAMENTO_INSCRICOES = '2026-09-02T23:59:59-03:00'
+export const PRAZO_ENCERRAMENTO_INSCRICOES = '2026-08-31T19:00:00-03:00'
 
 // Limite máximo de atletas confirmados (300 do lote 1 + 70 do lote 2)
 export const LIMITE_INSCRICOES = 370
@@ -63,7 +63,7 @@ export const FAQ_ITEMS = [
   { pergunta: 'Posso fazer a caminhada e a corrida?', resposta: 'Não, você deve escolher uma modalidade no momento da inscrição.' },
   { pergunta: 'A premiação em dinheiro vale para a caminhada?', resposta: 'Não, apenas para a corrida 6KM.' },
   { pergunta: 'Onde retiro o kit?', resposta: 'Dias 03 e 04/09 na Rua Castro Alves (próximo à Prefeitura), Conceição da Feira, Bahia. Leve 2kg de alimento não perecível.' },
-  { pergunta: 'Até quando posso me inscrever?', resposta: 'As inscrições vão até 02 de setembro de 2026 ou até esgotar o novo lote.' },
+  { pergunta: 'Até quando posso me inscrever?', resposta: 'As inscrições já foram encerradas. Acompanhe nosso Instagram para eventuais novidades.' },
 ]
 
 export const REGULAMENTO_ITEMS = [
@@ -71,7 +71,7 @@ export const REGULAMENTO_ITEMS = [
   { titulo: 'Política de Reembolso', texto: 'Não há reembolso, exceto desistência formal em até 7 dias após a inscrição (Art. 49 do CDC) ou cancelamento do evento.' },
   { titulo: 'Aceite', texto: 'Ao concluir a inscrição, o atleta aceita automaticamente este regulamento.' },
   { titulo: 'Hidratação', texto: 'Postos de água mineral ao longo de todo o percurso.' },
-  { titulo: 'Prazo de Inscrição', texto: 'As inscrições encerram em 02 de setembro de 2026, ou antes disso caso as vagas se esgotem.' },
+  { titulo: 'Prazo de Inscrição', texto: 'As inscrições já foram encerradas.' },
 ]
 
 // PLACEHOLDERS — trocar antes do lançamento real (ver HANDOFF.md)

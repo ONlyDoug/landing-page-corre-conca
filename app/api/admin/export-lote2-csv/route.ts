@@ -29,7 +29,7 @@ export async function GET(request: Request) {
     let csvString = keys.join(";") + "\n"
     for (const record of records) {
       csvString += keys.map(k => {
-        let val = record[k]
+        let val = (record as any)[k]
         if (val === null || val === undefined) val = ""
         // Escapa aspas
         const str = String(val).replace(/"/g, '""')

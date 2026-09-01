@@ -109,7 +109,7 @@ export async function POST(request: Request) {
       telefone: parsed.data.telefone,
       tamanho_camisa: parsed.data.tamanhoCamisa,
       modalidade: parsed.data.modalidade,
-      lote: 1,
+      lote: 2,
       valor_pago: valorPago,
       status_pagamento: "confirmado",
     })

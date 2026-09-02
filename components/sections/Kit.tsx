@@ -68,11 +68,11 @@ export default function Kit() {
           <div data-testid="info-section" className="flex flex-col md:flex-row gap-6 md:gap-12 justify-center md:justify-start">
             <div className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-roxo uppercase tracking-wider">Datas</span>
-              <p className="text-gray-700 font-medium">03 e 04/09</p>
+              <p className="text-gray-700 font-medium">Dia 4: Pela tarde<br />Dia 5: O dia inteiro</p>
             </div>
             <div className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-roxo uppercase tracking-wider">Local</span>
-              <p className="text-gray-700 font-medium">Rua Castro Alves (próximo à Prefeitura), Conceição da Feira, Bahia</p>
+              <p className="text-gray-700 font-medium">A definir (Centro da cidade)</p>
             </div>
             <div className="flex flex-col gap-2">
               <span className="text-sm font-semibold text-roxo uppercase tracking-wider">Requisito Obrigatório</span>

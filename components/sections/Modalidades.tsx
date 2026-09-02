@@ -37,13 +37,6 @@ export function Modalidades() {
 
                 <h3 className="text-2xl font-bold">{modalidade.nome}</h3>
                 <p className="text-lg font-semibold text-white/90">{modalidade.distancia}</p>
-
-                <a
-                  href="#formulario"
-                  className="mt-2 inline-flex items-center justify-center rounded-full bg-yellow-400 px-6 py-3 text-sm font-bold uppercase tracking-wide text-roxo-dark transition-colors hover:bg-yellow-300"
-                >
-                  Inscrever nesta modalidade
-                </a>
               </div>
             )
           })}

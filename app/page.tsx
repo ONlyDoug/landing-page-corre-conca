@@ -21,12 +21,12 @@ export default function Home() {
       {/* pb-28 no mobile reserva espaço para o StickyMobileCTA (fixed, ~90px com o link de acompanhamento) não cobrir o rodapé/formulário */}
       <main className="pb-28 md:pb-0">
         <Hero />
+        <Kit />
         <Sobre />
         <Modalidades />
         <Premiacao />
-        <Kit />
         <Lotes />
-        <Formulario />
+        {/* <Formulario /> - Inscrições encerradas */}
         <Regulamento />
         <FAQ />
         <Footer />

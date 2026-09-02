@@ -92,24 +92,9 @@ export default function Hero() {
           ))}
         </div>
 
-        <div className="mt-4">
-          <span className="inline-flex animate-pulse items-center gap-2 rounded-full bg-yellow-400 px-4 py-1.5 text-sm font-bold uppercase tracking-wide text-roxo-dark shadow-md">
-            🔥 2º Lote Aberto!
-          </span>
-        </div>
-
-        <motion.a
-          href="#formulario"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.98 }}
-          className="mt-2 rounded-full bg-white px-8 py-4 text-lg font-bold text-roxo-dark shadow-xl transition-shadow hover:shadow-2xl"
-        >
-          Quero me Inscrever &rarr;
-        </motion.a>
-
         <Link
           href="/acompanhar"
-          className="flex items-center justify-center gap-1 text-sm text-white/80 underline transition-colors hover:text-white"
+          className="flex items-center justify-center gap-1 text-sm text-white/80 underline transition-colors hover:text-white mt-4"
         >
           <Search size={14} aria-hidden="true" />
           Já me inscrevi — verificar inscrição

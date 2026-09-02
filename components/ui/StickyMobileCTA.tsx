@@ -15,15 +15,9 @@ export default function StickyMobileCTA() {
       transition={{ duration: 0.3, delay: 0.4 }}
       className="fixed inset-x-0 bottom-0 z-40 block border-t border-white/10 bg-roxo-dark/95 px-4 py-3 shadow-lg backdrop-blur-sm md:hidden"
     >
-      <a
-        href="#formulario"
-        className="flex min-h-[44px] w-full items-center justify-center rounded-lg bg-white px-4 text-base font-bold text-roxo-dark transition-transform active:scale-95"
-      >
-        Quero me Inscrever &rarr;
-      </a>
       <Link
         href="/acompanhar"
-        className="mt-1.5 block text-center text-xs text-purple-200 transition-colors hover:text-white"
+        className="flex min-h-[44px] w-full items-center justify-center rounded-lg bg-white px-4 text-base font-bold text-roxo-dark transition-transform active:scale-95"
       >
         Verificar inscrição
       </Link>

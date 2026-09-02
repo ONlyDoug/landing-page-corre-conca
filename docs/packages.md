@@ -18,6 +18,7 @@
 | Terceiro | produção | react-hook-form | ^7.81.0 | Performant, flexible and extensible forms library for React Hooks | https://github.com/react-hook-form/react-hook-form | https://github.com/react-hook-form/react-hook-form |
 | Terceiro | produção | recharts | ^3.9.2 | React charts | https://github.com/recharts/recharts | https://github.com/recharts/recharts |
 | Terceiro | produção | sharp | ^0.35.3 | High performance Node.js image processing, the fastest module to resize JPEG, PNG, WebP, GIF, AVIF and TIFF images | https://github.com/lovell/sharp | https://github.com/lovell/sharp |
+| Terceiro | produção | xlsx | ^0.18.5 | SheetJS Spreadsheet data parser and writer | git://github.com/SheetJS/sheetjs | git://github.com/SheetJS/sheetjs |
 | Terceiro | produção | zod | ^4.4.3 | TypeScript-first schema declaration and validation library with static type inference | https://github.com/colinhacks/zod | https://github.com/colinhacks/zod |
 | Terceiro | desenvolvimento | @testing-library/dom | ^10.4.1 | Simple and complete DOM testing utilities that encourage good testing practices. | https://github.com/testing-library/dom-testing-library | https://github.com/testing-library/dom-testing-library |
 | Terceiro | desenvolvimento | @testing-library/jest-dom | ^7.0.1 | Custom jest matchers to test the state of the DOM | https://github.com/testing-library/jest-dom | https://github.com/testing-library/jest-dom |
@@ -238,6 +239,7 @@
 | Terceiro | transitiva | @vitest/utils | 4.1.11 | Shared Vitest utility functions | https://github.com/vitest-dev/vitest | https://github.com/vitest-dev/vitest |
 | Terceiro | transitiva | acorn | 8.17.0 | ECMAScript parser | https://github.com/acornjs/acorn | https://github.com/acornjs/acorn |
 | Terceiro | transitiva | acorn-jsx | 5.3.2 | Modern, fast React.js JSX parser | https://github.com/acornjs/acorn-jsx | https://github.com/acornjs/acorn-jsx |
+| Terceiro | transitiva | adler-32 | 1.3.1 | Pure-JS ADLER-32 | git://github.com/SheetJS/js-adler32 | git://github.com/SheetJS/js-adler32 |
 | Terceiro | transitiva | ajv | 6.15.0 | Another JSON Schema Validator | https://github.com/ajv-validator/ajv | https://github.com/ajv-validator/ajv |
 | Terceiro | transitiva | ansi-regex | 5.0.1 | Regular expression for matching ANSI escape codes | chalk/ansi-regex | — |
 | Terceiro | transitiva | ansi-styles | 4.3.0 | ANSI escape codes for styling strings in the terminal | chalk/ansi-styles | — |
@@ -276,6 +278,7 @@
 | Terceiro | transitiva | camelcase | 5.3.1 | Convert a dash/dot/underscore/space separated string to camelCase or PascalCase: `foo-bar` → `fooBar` | sindresorhus/camelcase | — |
 | Terceiro | transitiva | camelcase-css | 2.0.1 | Convert a kebab-cased CSS property into a camelCased DOM property. | stevenvachon/camelcase-css | — |
 | Terceiro | transitiva | caniuse-lite | 1.0.30001802 | A smaller version of caniuse-db, with only the essentials! | browserslist/caniuse-lite | — |
+| Terceiro | transitiva | cfb | 1.2.2 | Compound File Binary File Format extractor | git://github.com/SheetJS/js-cfb | git://github.com/SheetJS/js-cfb |
 | Terceiro | transitiva | chai | 6.2.2 | BDD/TDD assertion library for node.js and the browser. Test framework agnostic. | https://github.com/chaijs/chai | https://github.com/chaijs/chai |
 | Terceiro | transitiva | chalk | 4.1.2 | Terminal string styling done right | chalk/chalk | — |
 | Terceiro | transitiva | chokidar | 3.6.0 | Minimal and efficient cross-platform file watching library | https://github.com/paulmillr/chokidar | https://github.com/paulmillr/chokidar |
@@ -283,12 +286,14 @@
 | Terceiro | transitiva | client-only | 0.0.1 | This is a marker package to indicate that a module can only be used in Client Components. |  | — |
 | Terceiro | transitiva | cliui | 6.0.0 | easily create complex multi-column command-line-interfaces | http://github.com/yargs/cliui | http://github.com/yargs/cliui |
 | Terceiro | transitiva | clsx | 2.1.1 | A tiny (239B) utility for constructing className strings conditionally. | lukeed/clsx | — |
+| Terceiro | transitiva | codepage | 1.15.0 | pure-JS library to handle codepages | git://github.com/SheetJS/js-codepage | git://github.com/SheetJS/js-codepage |
 | Terceiro | transitiva | color-convert | 2.0.1 | Plain color conversion functions | Qix-/color-convert | — |
 | Terceiro | transitiva | color-name | 1.1.4 | A list of color names and its values | git@github.com:colorjs/color-name | git@github.com:colorjs/color-name |
 | Terceiro | transitiva | commander | 4.1.1 | the complete solution for node.js command-line programs | https://github.com/tj/commander.js | https://github.com/tj/commander.js |
 | Terceiro | transitiva | concat-map | 0.0.1 | concatenative mapdashery | git://github.com/substack/node-concat-map | git://github.com/substack/node-concat-map |
 | Terceiro | transitiva | convert-source-map | 2.0.0 | Converts a source-map from/to  different formats and allows adding/changing properties. | git://github.com/thlorenz/convert-source-map | git://github.com/thlorenz/convert-source-map |
 | Terceiro | transitiva | cookie | 1.1.1 | HTTP server cookie parsing and serialization | jshttp/cookie | — |
+| Terceiro | transitiva | crc-32 | 1.2.2 | Pure-JS CRC-32 | git://github.com/SheetJS/js-crc32 | git://github.com/SheetJS/js-crc32 |
 | Terceiro | transitiva | cross-spawn | 7.0.6 | Cross platform child_process#spawn and child_process#spawnSync | git@github.com:moxystudio/node-cross-spawn | git@github.com:moxystudio/node-cross-spawn |
 | Terceiro | transitiva | css-tree | 3.2.1 | A tool set for CSS: fast detailed parser (CSS → AST), walker (AST traversal), generator (AST → CSS) and lexer (validation and matching) based on specs and browser implementations | csstree/csstree | — |
 | Terceiro | transitiva | css.escape | 1.5.1 | A robust polyfill for the `CSS.escape` utility method as defined in CSSOM. | https://github.com/mathiasbynens/CSS.escape | https://github.com/mathiasbynens/CSS.escape |
@@ -374,6 +379,7 @@
 | Terceiro | transitiva | flat-cache | 4.0.1 | A stupidly simple key/value storage using files to persist some data | jaredwray/flat-cache | — |
 | Terceiro | transitiva | flatted | 3.4.2 | A super light and fast circular JSON parser. | https://github.com/WebReflection/flatted | https://github.com/WebReflection/flatted |
 | Terceiro | transitiva | for-each | 0.3.5 | A better forEach | https://github.com/Raynos/for-each | https://github.com/Raynos/for-each |
+| Terceiro | transitiva | frac | 1.1.2 | Rational approximation with bounded denominator | git://github.com/SheetJS/frac | git://github.com/SheetJS/frac |
 | Terceiro | transitiva | fraction.js | 5.3.4 | The RAW rational numbers library | ssh://git@github.com/rawify/Fraction.js | ssh://git@github.com/rawify/Fraction.js |
 | Terceiro | transitiva | framer-motion | 12.42.2 | A simple and powerful JavaScript animation library | https://github.com/motiondivision/motion/ | https://github.com/motiondivision/motion/ |
 | Terceiro | transitiva | fsevents | 2.3.3 | Finalidade não descrita nos metadados locais. |  | — |
@@ -607,6 +613,7 @@
 | Terceiro | transitiva | side-channel-weakmap | 1.0.2 | Store information about any JS value in a side channel. Uses WeakMap if available. | https://github.com/ljharb/side-channel-weakmap | https://github.com/ljharb/side-channel-weakmap |
 | Terceiro | transitiva | siginfo | 2.0.0 | Utility module to print pretty messages on SIGINFO/SIGUSR1 | https://github.com/emilbayes/siginfo | https://github.com/emilbayes/siginfo |
 | Terceiro | transitiva | source-map-js | 1.2.1 | Generates and consumes source maps | 7rulnik/source-map-js | — |
+| Terceiro | transitiva | ssf | 0.11.2 | Format data using ECMA-376 spreadsheet Format Codes | git://github.com/SheetJS/ssf | git://github.com/SheetJS/ssf |
 | Terceiro | transitiva | stable-hash | 0.0.5 | Stable JS value hash. | https://github.com/shuding/stable-hash | https://github.com/shuding/stable-hash |
 | Terceiro | transitiva | stackback | 0.0.2 | return list of CallSite objects from a captured stacktrace | git://github.com/shtylman/node-stackback | git://github.com/shtylman/node-stackback |
 | Terceiro | transitiva | std-env | 4.2.0 | Runtime agnostic JS utils | unjs/std-env | — |
@@ -679,8 +686,11 @@
 | Terceiro | transitiva | which-module | 2.0.1 | Find the module object for something that was require()d | https://github.com/nexdrew/which-module | https://github.com/nexdrew/which-module |
 | Terceiro | transitiva | which-typed-array | 1.1.22 | Which kind of Typed Array is this JavaScript value? Works cross-realm, without `instanceof`, and despite Symbol.toStringTag. | git://github.com/inspect-js/which-typed-array | git://github.com/inspect-js/which-typed-array |
 | Terceiro | transitiva | why-is-node-running | 2.3.0 | Node is running but you don't know why? why-is-node-running is here to help you. | https://github.com/mafintosh/why-is-node-running | https://github.com/mafintosh/why-is-node-running |
+| Terceiro | transitiva | wmf | 1.0.2 | Windows MetaFile (WMF) parser | git://github.com/SheetJS/js-wmf | git://github.com/SheetJS/js-wmf |
+| Terceiro | transitiva | word | 0.3.0 | Word Processing Document library | git://github.com/SheetJS/js-word | git://github.com/SheetJS/js-word |
 | Terceiro | transitiva | word-wrap | 1.2.5 | Wrap words to a specified length. | jonschlinkert/word-wrap | — |
 | Terceiro | transitiva | wrap-ansi | 6.2.0 | Wordwrap a string with ANSI escape codes | chalk/wrap-ansi | — |
+| Terceiro | transitiva | xlsx | 0.18.5 | SheetJS Spreadsheet data parser and writer | git://github.com/SheetJS/sheetjs | git://github.com/SheetJS/sheetjs |
 | Terceiro | transitiva | xml-name-validator | 5.0.0 | Validates whether a string matches the production for an XML name or qualified name | jsdom/xml-name-validator | — |
 | Terceiro | transitiva | xmlchars | 2.2.0 | Utilities for determining if characters belong to character classes defined by the XML specs. | https://github.com/lddubeau/xmlchars | https://github.com/lddubeau/xmlchars |
 | Terceiro | transitiva | y18n | 4.0.3 | the bare-bones internationalization library used by yargs | git@github.com:yargs/y18n | git@github.com:yargs/y18n |
@@ -716,7 +726,6 @@
 | Terceiro | transitiva | chainsaw | 0.1.0 | Build chainable fluent interfaces the easy way... with a freakin' chainsaw! | http://github.com/substack/node-chainsaw | http://github.com/substack/node-chainsaw |
 | Terceiro | transitiva | compress-commons | 4.1.2 | a library that defines a common interface for working with archive formats within node | https://github.com/archiverjs/node-compress-commons | https://github.com/archiverjs/node-compress-commons |
 | Terceiro | transitiva | core-util-is | 1.0.3 | The `util.is*` functions introduced in Node v0.12. | git://github.com/isaacs/core-util-is | git://github.com/isaacs/core-util-is |
-| Terceiro | transitiva | crc-32 | 1.2.2 | Pure-JS CRC-32 | git://github.com/SheetJS/js-crc32 | git://github.com/SheetJS/js-crc32 |
 | Terceiro | transitiva | crc32-stream | 4.0.3 | a streaming CRC32 checksumer | https://github.com/archiverjs/node-crc32-stream | https://github.com/archiverjs/node-crc32-stream |
 | Terceiro | transitiva | dayjs | 1.11.23 | 2KB immutable date time library alternative to Moment.js with the same modern API  | https://github.com/iamkun/dayjs | https://github.com/iamkun/dayjs |
 | Terceiro | transitiva | duplexer2 | 0.1.4 | Like duplexer but using streams3 | deoxxa/duplexer2 | — |

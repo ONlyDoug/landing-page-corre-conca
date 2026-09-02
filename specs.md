@@ -6,6 +6,7 @@
 | Ordem | Spec | Estado | Milestones |
 | --- | --- | --- | --- |
 | 01 | 0001-novo-lote-e-informacoes-de-retirada-de-kit | Complete | — |
+| 02 | 0002-atualizacao-layout-pos-inscricoes | Complete | — |
 
 ## Marcos
 

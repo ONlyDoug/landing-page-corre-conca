@@ -240,7 +240,7 @@
 | .agents/skills/specsfy-specialist-react-ui-components/assets/components/typography/heading.tsx |
 | .agents/skills/specsfy-specialist-react-ui-components/assets/components/typography/link.tsx |
 | .agents/skills/specsfy-specialist-react-ui-components/assets/components/typography/text.tsx |
-| .next/static/css/336f7faa23d0d968.css |
+| .next/static/chunks/3kr5x6335b_mu.css |
 | app/acompanhar/[token]/page.tsx |
 | app/acompanhar/page.tsx |
 | app/dashboard/checkin/page.tsx |
